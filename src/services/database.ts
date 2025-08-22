@@ -16,7 +16,7 @@ export interface TableInfo {
   name: string
   records: string
   lastUpdate: string
-  status: 'Ак��ивна' | 'Обновляется' | 'Ошибка'
+  status: 'Активна' | 'Обновляется' | 'Ошибка'
   schema?: string
 }
 
@@ -118,6 +118,16 @@ class DatabaseService {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
+  private isRateLimited(): boolean {
+    return Date.now() < this.rateLimitedUntil
+  }
+
+  private handleRateLimit(): void {
+    this.rateLimitedUntil = Date.now() + this.RATE_LIMIT_BACKOFF
+    this.consecutiveErrors++
+    console.warn(`🚫 Rate limited! Backing off for ${this.RATE_LIMIT_BACKOFF / 1000} seconds`)
+  }
+
   private async processRequestQueue(): Promise<void> {
     if (this.isProcessingQueue || this.requestQueue.length === 0) {
       return
@@ -126,6 +136,12 @@ class DatabaseService {
     this.isProcessingQueue = true
 
     while (this.requestQueue.length > 0) {
+      // Check if we're rate limited
+      if (this.isRateLimited()) {
+        console.warn('⏸️ Queue processing paused due to rate limiting')
+        break
+      }
+
       const now = Date.now()
       const timeSinceLastRequest = now - this.lastRequestTime
 
@@ -135,11 +151,24 @@ class DatabaseService {
 
       const request = this.requestQueue.shift()
       if (request) {
+        // Check if request is too old (older than 30 seconds)
+        if (now - request.timestamp > 30000) {
+          request.reject(new Error('Request timeout - too long in queue'))
+          continue
+        }
+
         try {
           this.lastRequestTime = Date.now()
           const result = await this.makeDirectApiCall(request.endpoint, request.options)
           request.resolve(result)
+          this.consecutiveErrors = 0 // Reset error count on success
         } catch (error) {
+          if (error instanceof Error && error.message.includes('429')) {
+            this.handleRateLimit()
+            // Reject all remaining requests to prevent flooding
+            this.requestQueue.forEach(req => req.reject(new Error('Rate limited - service temporarily unavailable')))
+            this.requestQueue.length = 0
+          }
           request.reject(error)
         }
       }
