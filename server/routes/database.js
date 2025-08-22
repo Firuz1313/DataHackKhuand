@@ -26,4 +26,16 @@ router.post('/query', databaseController.executeQuery)
 // Get recent queries
 router.get('/queries/recent', databaseController.getRecentQueries)
 
+// Get table data with pagination
+router.get('/tables/:tableName/data', databaseController.getTableData)
+
+// Get performance metrics
+router.get('/performance', databaseController.getPerformanceMetrics)
+
+// Get real-time monitoring stats
+router.get('/monitoring/realtime', databaseController.getRealTimeStats)
+
+// Get weekly activity analytics
+router.get('/analytics/weekly', databaseController.getWeeklyActivity)
+
 module.exports = router
