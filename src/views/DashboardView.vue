@@ -15,7 +15,7 @@
           <h2 class="text-3xl font-bold text-gray-900 mb-2">Добро пожаловать в DataBoard</h2>
           <p class="text-gray-600">
             Управление базами данных: 
-            <span class="font-mono text-primary-600">{{ legacyDatabase }}</span> и 
+            <span class="font-mono text-primary-600">{{ getLegacyDatabase() }}</span> и 
             <span class="font-mono text-primary-600">Neon</span>
           </p>
         </div>
@@ -55,7 +55,7 @@
                   </div>
                   <div>
                     <h3 class="font-semibold text-gray-900">Legacy PostgreSQL</h3>
-                    <p class="text-sm text-gray-600">{{ legacyHost }}:{{ legacyPort }}</p>
+                    <p class="text-sm text-gray-600">{{ getLegacyHost() }}:{{ getLegacyPort() }}</p>
                   </div>
                 </div>
                 <span class="badge-warning">Только чтение</span>
@@ -111,10 +111,10 @@
                   <span class="badge-info text-xs">SSH требуется</span>
                 </div>
                 <div class="space-y-1 text-xs text-gray-600">
-                  <div><span class="font-medium">Хост:</span> {{ legacyHost }}</div>
-                  <div><span class="font-medium">Порт:</span> {{ legacyPort }}</div>
-                  <div><span class="font-medium">База:</span> {{ legacyDatabase }}</div>
-                  <div><span class="font-medium">Пользователь:</span> {{ legacyUser }}</div>
+                  <div><span class="font-medium">Хост:</span> {{ getLegacyHost() }}</div>
+                  <div><span class="font-medium">Порт:</span> {{ getLegacyPort() }}</div>
+                  <div><span class="font-medium">База:</span> {{ getLegacyDatabase() }}</div>
+                  <div><span class="font-medium">Пользователь:</span> {{ getLegacyUser() }}</div>
                   <div><span class="font-medium">Права:</span> SELECT only</div>
                 </div>
               </div>
@@ -236,11 +236,22 @@ const showQueryInterface = ref(false)
 const sqlQuery = ref('')
 const executingQuery = ref(false)
 
-// Environment variables
-const legacyHost = import.meta.env.VITE_LEGACY_DB_HOST || '103.246.146.132'
-const legacyPort = import.meta.env.VITE_LEGACY_DB_PORT || '5432'
-const legacyDatabase = import.meta.env.VITE_LEGACY_DB_NAME || 'hackathon'
-const legacyUser = import.meta.env.VITE_LEGACY_DB_USER || 'user_db'
+// Helper functions to safely access environment variables
+const getLegacyHost = (): string => {
+  return import.meta.env.VITE_LEGACY_DB_HOST || '103.246.146.132'
+}
+
+const getLegacyPort = (): string => {
+  return import.meta.env.VITE_LEGACY_DB_PORT || '5432'
+}
+
+const getLegacyDatabase = (): string => {
+  return import.meta.env.VITE_LEGACY_DB_NAME || 'hackathon'
+}
+
+const getLegacyUser = (): string => {
+  return import.meta.env.VITE_LEGACY_DB_USER || 'user_db'
+}
 
 const uptime = computed(() => {
   const now = new Date()
@@ -317,6 +328,6 @@ const exportData = () => {
 onMounted(() => {
   console.log('🎯 DataBoard загружен')
   console.log('📊 Neon подключение:', import.meta.env.VITE_DATABASE_URL ? 'настроено' : 'не настроено')
-  console.log('🔒 Legacy подключение:', `${legacyUser}@${legacyHost}:${legacyPort}/${legacyDatabase}`)
+  console.log('🔒 Legacy подключение:', `${getLegacyUser()}@${getLegacyHost()}:${getLegacyPort()}/${getLegacyDatabase()}`)
 })
 </script>

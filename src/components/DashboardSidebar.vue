@@ -104,7 +104,7 @@
             {{ connectionStatus.neon ? 'Подключено' : 'Ошибка' }}
           </span>
         </div>
-        <div class="text-xs text-gray-500 font-mono">{{ neonEndpoint }}</div>
+        <div class="text-xs text-gray-500 font-mono">{{ getNeonEndpoint() }}</div>
       </div>
 
       <!-- Legacy Connection Info -->
@@ -117,8 +117,8 @@
           <span class="text-xs text-warning-600">Только чтение</span>
         </div>
         <div class="text-xs text-gray-500">
-          <div class="font-mono">{{ legacyHost }}:{{ legacyPort }}</div>
-          <div>{{ legacyDatabase }}@{{ legacyUser }}</div>
+          <div class="font-mono">{{ getLegacyHost() }}:{{ getLegacyPort() }}</div>
+          <div>{{ getLegacyDatabase() }}@{{ getLegacyUser() }}</div>
         </div>
       </div>
 
@@ -146,12 +146,34 @@ const connectionStatus = reactive({
   legacy: false
 })
 
-// Environment variables
-const neonEndpoint = import.meta.env.VITE_DATABASE_URL?.split('@')[1]?.split('/')[0] || 'ep-polished-butterfly-aebtpaqz-pooler.c-2.us-east-2.aws.neon.tech'
-const legacyHost = import.meta.env.VITE_LEGACY_DB_HOST || '103.246.146.132'
-const legacyPort = import.meta.env.VITE_LEGACY_DB_PORT || '5432'
-const legacyDatabase = import.meta.env.VITE_LEGACY_DB_NAME || 'hackathon'
-const legacyUser = import.meta.env.VITE_LEGACY_DB_USER || 'user_db'
+// Helper functions to safely access environment variables
+const getNeonEndpoint = (): string => {
+  const dbUrl = import.meta.env.VITE_DATABASE_URL
+  if (!dbUrl) return 'Не настроено'
+  
+  try {
+    const url = new URL(dbUrl)
+    return url.host
+  } catch {
+    return 'ep-polished-butterfly-aebtpaqz-pooler.c-2.us-east-2.aws.neon.tech'
+  }
+}
+
+const getLegacyHost = (): string => {
+  return import.meta.env.VITE_LEGACY_DB_HOST || '103.246.146.132'
+}
+
+const getLegacyPort = (): string => {
+  return import.meta.env.VITE_LEGACY_DB_PORT || '5432'
+}
+
+const getLegacyDatabase = (): string => {
+  return import.meta.env.VITE_LEGACY_DB_NAME || 'hackathon'
+}
+
+const getLegacyUser = (): string => {
+  return import.meta.env.VITE_LEGACY_DB_USER || 'user_db'
+}
 
 const setActiveItem = (item: string) => {
   activeItem.value = item
