@@ -20,7 +20,7 @@
                 @change="loadAllData"
                 class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-primary-500"
               >
-                <option value="30">По��ледние 30 дней</option>
+                <option value="30">Последние 30 дней</option>
                 <option value="90">Последние 90 дней</option>
                 <option value="180">Последние 6 месяцев</option>
                 <option value="365">Последний год</option>
@@ -35,7 +35,7 @@
               <svg class="w-4 h-4 mr-1" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
               </svg>
-              {{ loading ? 'Обновление...' : 'Обновить' }}
+              {{ loading ? 'Об��овление...' : 'Обновить' }}
             </button>
           </div>
         </div>
@@ -83,8 +83,15 @@
                   </svg>
                 </div>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500">Заказы</p>
+              <div class="ml-4 flex-1">
+                <div class="flex items-center space-x-2">
+                  <p class="text-sm font-medium text-gray-500">Заказы</p>
+                  <KpiTooltip
+                    title="Общее количество заказов"
+                    description="Суммарное количество заказов клиентов за выбранный период, включая все статусы заказов"
+                    formula="COUNT(orders) WHERE order_date IN period"
+                  />
+                </div>
                 <p class="text-2xl font-semibold text-gray-900">
                   {{ formatNumber(kpis?.orders?.total_orders || 0) }}
                 </p>
@@ -400,6 +407,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { analyticsService, type DashboardKPIs, type InsightAnalysis } from '@/services/analyticsService'
+import KpiTooltip from '@/components/KpiTooltip.vue'
 
 // Reactive state
 const loading = ref(false)
