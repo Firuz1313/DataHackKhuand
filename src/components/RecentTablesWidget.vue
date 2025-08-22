@@ -13,7 +13,7 @@
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center items-center py-8">
       <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
-      <span class="ml-3 text-gray-600">Загрузка таблиц...</span>
+      <span class="ml-3 text-gray-700 font-medium">Загрузка таблиц...</span>
     </div>
 
     <!-- Error State -->
@@ -26,8 +26,8 @@
             clip-rule="evenodd"
           />
         </svg>
-        <p class="text-error-700 font-medium">Ошибка загрузки таблиц</p>
-        <p class="text-error-600 text-sm mt-1">{{ error }}</p>
+        <p class="text-error-800 font-semibold">Ошибка загрузки таблиц</p>
+        <p class="text-error-700 text-sm font-medium mt-1">{{ error }}</p>
         <button @click="fetchTables" class="mt-2 btn-primary text-sm">Повторить</button>
       </div>
     </div>
