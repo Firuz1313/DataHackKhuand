@@ -563,11 +563,22 @@ const refreshQueries = () => {
 const refreshAllData = async () => {
   refreshing.value = true
   try {
-    await Promise.all([
-      loadRealData(),
-      loadQueries(),
-      loadPerformance()
-    ])
+    // Load data sequentially to avoid overwhelming the API
+    await loadRealData()
+
+    // Add small delay between requests
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    // Only load secondary data if primary data loaded successfully
+    if (realStats.value.totalTables > 0 || connectionStatus.value) {
+      await loadQueries()
+
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      await loadPerformance()
+    }
+  } catch (error) {
+    console.error('❌ Error refreshing data:', error)
   } finally {
     refreshing.value = false
   }
