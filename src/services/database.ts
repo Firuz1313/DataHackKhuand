@@ -265,6 +265,8 @@ class DatabaseService {
     throw lastError
   }
 
+  private pendingRequests = new Map<string, Promise<any>>()
+
   private async apiCall<T>(
     endpoint: string,
     options: RequestInit = {},
@@ -279,17 +281,37 @@ class DatabaseService {
           console.log(`📋 Cache hit for ${endpoint}`)
           return cachedData
         }
+
+        // Check if the same request is already in progress
+        if (this.pendingRequests.has(cacheKey)) {
+          console.log(`⏳ Request already in progress for ${endpoint}`)
+          return await this.pendingRequests.get(cacheKey)
+        }
       }
 
-      const result = await this.apiCallWithRetry<T>(endpoint, options)
+      const cacheKey = this.getCacheKey(endpoint, options)
 
-      // Cache successful GET requests
+      // Create the request promise
+      const requestPromise = this.apiCallWithRetry<T>(endpoint, options)
+
+      // Store pending request for GET requests to prevent duplicates
       if ((!options.method || options.method === 'GET') && !options.body) {
-        const cacheKey = this.getCacheKey(endpoint, options)
-        this.setCachedData(cacheKey, result, cacheTtl)
+        this.pendingRequests.set(cacheKey, requestPromise)
       }
 
-      return result
+      try {
+        const result = await requestPromise
+
+        // Cache successful GET requests
+        if ((!options.method || options.method === 'GET') && !options.body) {
+          this.setCachedData(cacheKey, result, cacheTtl || this.DEFAULT_CACHE_TTL)
+        }
+
+        return result
+      } finally {
+        // Clean up pending request
+        this.pendingRequests.delete(cacheKey)
+      }
     } catch (error) {
       console.error('❌ Ошибка API:', error)
       if (error instanceof Error) {
