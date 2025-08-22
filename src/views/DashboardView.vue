@@ -329,7 +329,7 @@
         <!-- Footer -->
         <div class="mt-12 pt-8 border-t border-gray-200">
           <div class="flex items-center justify-between text-sm text-gray-700 font-medium">
-            <div>© 2024 DataBoard. Профессиона��ьная панель управления базами данных.</div>
+            <div>© 2024 DataBoard. Профессиональная панель управления базами данных.</div>
             <div class="flex items-center space-x-4">
               <button class="hover:text-gray-900 font-medium">Документация</button>
               <button class="hover:text-gray-900 font-medium">Поддержка</button>
@@ -469,31 +469,58 @@ const realDataQualityScore = computed(() => {
 })
 
 const getQualityGrade = (score: number) => {
-  if (score >= 90) return { label: 'Отлично', color: 'bg-success-100 text-success-800' }
-  if (score >= 80) return { label: 'Хор��шо', color: 'bg-warning-100 text-warning-800' }
+  if (score >= 90) return { label: '��тлично', color: 'bg-success-100 text-success-800' }
+  if (score >= 80) return { label: 'Хорошо', color: 'bg-warning-100 text-warning-800' }
   if (score >= 70) return { label: 'Удовлетворительно', color: 'bg-orange-100 text-orange-800' }
   return { label: 'Требует внимания', color: 'bg-error-100 text-error-800' }
 }
 
-// Load real data from API
+// Load real data from API with better error handling
 const loadRealData = async () => {
   try {
     loading.value = true
-    
-    // Load database stats
-    const stats = await dbService.getDatabaseStats()
-    realStats.value = stats
-    
-    // Test connection
-    connectionStatus.value = await dbService.testConnection()
-    
+
+    // Load database stats with fallback
+    try {
+      const stats = await dbService.getDatabaseStats()
+      realStats.value = stats
+      console.log('✅ Real data loaded:', stats)
+    } catch (statsError) {
+      console.warn('Failed to load stats, using fallback data:', statsError)
+      realStats.value = {
+        totalTables: 0,
+        totalRecords: 0,
+        databaseSize: 'Недоступно',
+        activeConnections: 0,
+        newTables: 0,
+        newRecords: 0,
+      }
+    }
+
+    // Test connection with fallback
+    try {
+      connectionStatus.value = await dbService.testConnection()
+    } catch (connError) {
+      console.warn('Connection test failed:', connError)
+      connectionStatus.value = false
+    }
+
     // Update timestamp
     lastUpdate.value = new Date().toLocaleTimeString('ru-RU')
-    
-    console.log('✅ Real data loaded:', stats)
+
   } catch (error) {
     console.error('❌ Error loading real data:', error)
     connectionStatus.value = false
+
+    // Set fallback data
+    realStats.value = {
+      totalTables: 0,
+      totalRecords: 0,
+      databaseSize: 'Недоступно',
+      activeConnections: 0,
+      newTables: 0,
+      newRecords: 0,
+    }
   } finally {
     loading.value = false
   }
