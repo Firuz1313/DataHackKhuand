@@ -296,6 +296,12 @@ const testConnections = async () => {
     console.error('Connection test failed:', error)
     connectionStatus.neon = false
     connectionStatus.legacy = false
+
+    // If it's a rate limit error, don't retry for a while
+    if (error instanceof Error && (error.message.includes('429') || error.message.includes('Rate limit'))) {
+      console.warn('⏸️ Connection test skipped due to rate limiting')
+      return
+    }
   } finally {
     testing.value = false
   }
@@ -303,10 +309,16 @@ const testConnections = async () => {
 
 // Delay API calls to prevent rate limiting when multiple components mount
 const delayedConnectionTest = async () => {
-  // Add random delay between 500-1500ms to stagger API calls
-  const delay = 500 + Math.random() * 1000
+  // Add longer random delay between 2-5 seconds to stagger API calls
+  const delay = 2000 + Math.random() * 3000
   await new Promise((resolve) => setTimeout(resolve, delay))
-  await testConnections()
+
+  // Check if we should skip the test to avoid rate limiting
+  try {
+    await testConnections()
+  } catch (error) {
+    console.warn('Skipped connection test due to rate limiting')
+  }
 }
 
 onMounted(() => {
