@@ -138,15 +138,14 @@ class DatabaseController {
         LIMIT 20
       `)
 
-      const self = this
       const tables = result.rows.map((table, index) => ({
         id: index + 1,
         name: table.name,
         records: Number(
           table.estimated_rows || Math.floor(Math.random() * 10000 + 1000),
         ).toLocaleString('ru-RU'),
-        lastUpdate: self.formatTimeAgo(table.last_updated),
-        status: self.getRandomStatus(),
+        lastUpdate: formatTimeAgo(table.last_updated),
+        status: getRandomStatus(),
         schema: table.schema,
       }))
 
@@ -157,7 +156,7 @@ class DatabaseController {
         data: tables,
       })
     } catch (error) {
-      console.error('❌ Ошибка получения табл��ц:', error)
+      console.error('❌ Ошибка получения таблиц:', error)
       res.status(500).json({
         success: false,
         error: 'Ошибка получения списка таблиц',
@@ -183,7 +182,7 @@ class DatabaseController {
       if (!trimmedQuery.startsWith('select')) {
         return res.status(403).json({
           success: false,
-          error: 'Разрешены только SELECT запросы',
+          error: 'Разрешены ��олько SELECT запросы',
         })
       }
 
