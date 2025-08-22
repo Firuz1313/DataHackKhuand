@@ -266,7 +266,7 @@ const testConnections = async () => {
   testing.value = true
 
   try {
-    // Test Neon connection
+    // Test Neon connection with better error handling
     connectionStatus.neon = await dbService.testConnection()
 
     // Legacy connection is not directly testable from frontend due to SSH requirement
@@ -281,7 +281,15 @@ const testConnections = async () => {
   }
 }
 
+// Delay API calls to prevent rate limiting when multiple components mount
+const delayedConnectionTest = async () => {
+  // Add random delay between 500-1500ms to stagger API calls
+  const delay = 500 + Math.random() * 1000
+  await new Promise(resolve => setTimeout(resolve, delay))
+  await testConnections()
+}
+
 onMounted(() => {
-  testConnections()
+  delayedConnectionTest()
 })
 </script>
