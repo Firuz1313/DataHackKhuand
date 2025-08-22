@@ -187,7 +187,7 @@ class DatabaseService {
       search?: string
       sort?: string
       order?: 'ASC' | 'DESC'
-    } = {}
+    } = {},
   ): Promise<{
     rows: any[]
     pagination: {

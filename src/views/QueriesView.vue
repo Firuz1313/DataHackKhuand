@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <DashboardSidebar />
-    
+
     <div class="ml-64">
       <DashboardHeader />
-      
+
       <main class="p-6">
         <div class="mb-6">
           <h1 class="text-2xl font-bold text-gray-900 mb-2">SQL Запросы</h1>
@@ -31,7 +31,7 @@
               </button>
             </div>
           </div>
-          
+
           <div class="space-y-4">
             <div>
               <textarea
@@ -40,15 +40,19 @@
                 class="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
               ></textarea>
             </div>
-            
+
             <div class="text-xs text-gray-500 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-              <strong>ℹ️ Ограничения безопасности:</strong> Разрешены только SELECT запросы для чтения данных
+              <strong>ℹ️ Ограничения безопасности:</strong> Разрешены только SELECT запросы для
+              чтения данных
             </div>
           </div>
         </div>
 
         <!-- Query Results Section -->
-        <div v-if="queryResults || queryError" class="bg-white rounded-lg shadow-card border border-gray-200 mb-6">
+        <div
+          v-if="queryResults || queryError"
+          class="bg-white rounded-lg shadow-card border border-gray-200 mb-6"
+        >
           <!-- Success Results -->
           <div v-if="queryResults && !queryError" class="p-6">
             <div class="flex items-center justify-between mb-4">
@@ -57,7 +61,7 @@
                 {{ queryResults.rowCount }} строк за {{ queryResults.executionTime }}ms
               </div>
             </div>
-            
+
             <div class="overflow-x-auto">
               <table v-if="queryResults.rows.length > 0" class="w-full text-sm">
                 <thead class="bg-gray-50">
@@ -72,7 +76,11 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                  <tr v-for="(row, index) in queryResults.rows.slice(0, 100)" :key="index" class="hover:bg-gray-50">
+                  <tr
+                    v-for="(row, index) in queryResults.rows.slice(0, 100)"
+                    :key="index"
+                    class="hover:bg-gray-50"
+                  >
                     <td
                       v-for="(value, key) in row"
                       :key="key"
@@ -83,13 +91,16 @@
                   </tr>
                 </tbody>
               </table>
-              
+
               <div v-else class="text-center py-8 text-gray-500">
                 Запрос выполнен успешно, но результатов не найдено
               </div>
             </div>
-            
-            <div v-if="queryResults.rows.length > 100" class="mt-4 text-sm text-gray-600 text-center">
+
+            <div
+              v-if="queryResults.rows.length > 100"
+              class="mt-4 text-sm text-gray-600 text-center"
+            >
               Показано первые 100 строк из {{ queryResults.rowCount }}
             </div>
           </div>
@@ -115,7 +126,7 @@
               {{ loadingHistory ? 'Загрузка...' : '🔄 Обновить' }}
             </button>
           </div>
-          
+
           <div class="space-y-3">
             <div
               v-for="query in recentQueries"
@@ -143,7 +154,7 @@
               </button>
             </div>
           </div>
-          
+
           <div v-if="recentQueries.length === 0" class="text-center py-8 text-gray-500">
             История запросов пуста
           </div>
@@ -174,11 +185,11 @@ const clearQuery = () => {
 
 const executeQuery = async () => {
   if (!currentQuery.value.trim()) return
-  
+
   executing.value = true
   queryResults.value = null
   queryError.value = null
-  
+
   try {
     queryResults.value = await dbService.executeQuery(currentQuery.value)
   } catch (error) {

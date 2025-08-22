@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <DashboardSidebar />
-    
+
     <div class="ml-64">
       <DashboardHeader />
-      
+
       <main class="p-6">
         <div class="mb-6">
           <h1 class="text-2xl font-bold text-gray-900 mb-2">Аналитика</h1>
@@ -21,10 +21,12 @@
             <div class="mb-4">
               <div class="flex justify-between items-center mb-2">
                 <span class="text-sm text-gray-600">Использование</span>
-                <span class="text-lg font-bold text-primary-600">{{ performance.cpu.current }}%</span>
+                <span class="text-lg font-bold text-primary-600"
+                  >{{ performance.cpu.current }}%</span
+                >
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   :style="{ width: performance.cpu.current + '%' }"
                   class="bg-primary-500 h-2 rounded-full transition-all duration-300"
                 ></div>
@@ -50,10 +52,12 @@
             <div class="mb-4">
               <div class="flex justify-between items-center mb-2">
                 <span class="text-sm text-gray-600">Использование</span>
-                <span class="text-lg font-bold text-success-600">{{ performance.memory.current }}%</span>
+                <span class="text-lg font-bold text-success-600"
+                  >{{ performance.memory.current }}%</span
+                >
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   :style="{ width: performance.memory.current + '%' }"
                   class="bg-success-500 h-2 rounded-full transition-all duration-300"
                 ></div>
@@ -79,10 +83,12 @@
             <div class="mb-4">
               <div class="flex justify-between items-center mb-2">
                 <span class="text-sm text-gray-600">Активность</span>
-                <span class="text-lg font-bold text-warning-600">{{ performance.io.current }}%</span>
+                <span class="text-lg font-bold text-warning-600"
+                  >{{ performance.io.current }}%</span
+                >
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   :style="{ width: performance.io.current + '%' }"
                   class="bg-warning-500 h-2 rounded-full transition-all duration-300"
                 ></div>
@@ -116,20 +122,23 @@
               </button>
             </div>
           </div>
-          
+
           <div class="grid grid-cols-7 gap-4 mb-6">
             <div v-for="(day, index) in weeklyActivity" :key="index" class="text-center">
               <div class="text-xs text-gray-500 mb-2">{{ day.name }}</div>
               <div class="relative h-20 bg-gray-100 rounded-lg flex items-end justify-center p-1">
-                <div 
-                  :style="{ height: (day.queries / Math.max(...weeklyActivity.map(d => d.queries))) * 100 + '%' }"
+                <div
+                  :style="{
+                    height:
+                      (day.queries / Math.max(...weeklyActivity.map((d) => d.queries))) * 100 + '%',
+                  }"
                   class="bg-primary-500 w-6 rounded-t transition-all duration-300"
                 ></div>
               </div>
               <div class="text-xs text-gray-700 mt-1">{{ day.queries }}</div>
             </div>
           </div>
-          
+
           <div class="grid grid-cols-3 gap-6 pt-6 border-t border-gray-200">
             <div class="text-center">
               <div class="text-2xl font-bold text-primary-600">{{ totalQueries }}</div>
@@ -155,7 +164,7 @@
               <span class="text-sm text-gray-600">Обновлено {{ lastUpdate }}</span>
             </div>
           </div>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="flex items-center justify-between mb-2">
@@ -164,9 +173,11 @@
                   <div class="w-2 h-2 bg-primary-500 rounded-full"></div>
                 </div>
               </div>
-              <div class="text-2xl font-bold text-gray-900">{{ realTimeStats.activeConnections }}</div>
+              <div class="text-2xl font-bold text-gray-900">
+                {{ realTimeStats.activeConnections }}
+              </div>
             </div>
-            
+
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="flex items-center justify-between mb-2">
                 <span class="text-sm text-gray-600">Запросов/мин</span>
@@ -174,9 +185,11 @@
                   <div class="w-2 h-2 bg-success-500 rounded-full"></div>
                 </div>
               </div>
-              <div class="text-2xl font-bold text-gray-900">{{ realTimeStats.queriesPerMinute }}</div>
+              <div class="text-2xl font-bold text-gray-900">
+                {{ realTimeStats.queriesPerMinute }}
+              </div>
             </div>
-            
+
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="flex items-center justify-between mb-2">
                 <span class="text-sm text-gray-600">Ср. время ответа</span>
@@ -184,9 +197,11 @@
                   <div class="w-2 h-2 bg-warning-500 rounded-full"></div>
                 </div>
               </div>
-              <div class="text-2xl font-bold text-gray-900">{{ realTimeStats.avgResponseTime }}ms</div>
+              <div class="text-2xl font-bold text-gray-900">
+                {{ realTimeStats.avgResponseTime }}ms
+              </div>
             </div>
-            
+
             <div class="bg-gray-50 rounded-lg p-4">
               <div class="flex items-center justify-between mb-2">
                 <span class="text-sm text-gray-600">Размер кэша</span>
@@ -202,12 +217,22 @@
         <!-- Database Health -->
         <div class="bg-white rounded-lg shadow-card border border-gray-200 p-6">
           <h2 class="text-lg font-semibold text-gray-900 mb-6">Состояние базы данных</h2>
-          
+
           <div class="space-y-4">
-            <div v-for="health in healthChecks" :key="health.name" class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div
+              v-for="health in healthChecks"
+              :key="health.name"
+              class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+            >
               <div class="flex items-center">
-                <div 
-                  :class="health.status === 'healthy' ? 'bg-success-500' : health.status === 'warning' ? 'bg-warning-500' : 'bg-error-500'"
+                <div
+                  :class="
+                    health.status === 'healthy'
+                      ? 'bg-success-500'
+                      : health.status === 'warning'
+                        ? 'bg-warning-500'
+                        : 'bg-error-500'
+                  "
                   class="w-3 h-3 rounded-full mr-3"
                 ></div>
                 <div>
@@ -236,7 +261,7 @@ const lastUpdate = ref(new Date().toLocaleTimeString())
 const performance = reactive({
   cpu: { current: 0, average: 0, max: 0 },
   memory: { current: 0, average: 0, available: '0 GB' },
-  io: { current: 0, read: '0 MB/s', write: '0 MB/s' }
+  io: { current: 0, read: '0 MB/s', write: '0 MB/s' },
 })
 
 const weeklyActivity = ref([
@@ -246,7 +271,7 @@ const weeklyActivity = ref([
   { name: 'Чт', queries: 0 },
   { name: 'Пт', queries: 0 },
   { name: 'Сб', queries: 0 },
-  { name: 'Вс', queries: 0 }
+  { name: 'Вс', queries: 0 },
 ])
 
 const totalQueries = ref(0)
@@ -257,7 +282,7 @@ const realTimeStats = reactive({
   activeConnections: 0,
   queriesPerMinute: 0,
   avgResponseTime: 0,
-  cacheSize: '0 GB'
+  cacheSize: '0 GB',
 })
 
 const healthChecks = ref([
@@ -265,26 +290,26 @@ const healthChecks = ref([
     name: 'Подключение к БД',
     description: 'Соединение с PostgreSQL стабильно',
     status: 'healthy',
-    lastCheck: '30 сек назад'
+    lastCheck: '30 сек назад',
   },
   {
     name: 'Производительность запросов',
     description: 'Среднее время ответа в пределах нормы',
     status: 'healthy',
-    lastCheck: '1 мин назад'
+    lastCheck: '1 мин назад',
   },
   {
     name: 'Использование памяти',
     description: 'Высокое использование памяти',
     status: 'warning',
-    lastCheck: '2 мин назад'
+    lastCheck: '2 мин назад',
   },
   {
     name: 'Место на диске',
     description: 'Достаточно свободного места',
     status: 'healthy',
-    lastCheck: '5 мин назад'
-  }
+    lastCheck: '5 мин назад',
+  },
 ])
 
 let updateInterval: number
@@ -299,9 +324,9 @@ const refreshAnalytics = async () => {
 
     // Load weekly activity
     const weeklyData = await dbService.getWeeklyActivity()
-    weeklyActivity.value = weeklyData.weeklyActivity.map(day => ({
+    weeklyActivity.value = weeklyData.weeklyActivity.map((day) => ({
       name: day.day,
-      queries: day.queries
+      queries: day.queries,
     }))
 
     totalQueries.value = weeklyData.summary.totalQueries
@@ -314,7 +339,6 @@ const refreshAnalytics = async () => {
     realTimeStats.queriesPerMinute = realtimeData.queriesPerMinute
     realTimeStats.avgResponseTime = realtimeData.avgResponseTime
     realTimeStats.cacheSize = realtimeData.cacheSize
-
   } catch (error) {
     console.error('Failed to load analytics data:', error)
   } finally {

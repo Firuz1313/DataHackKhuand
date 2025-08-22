@@ -8,71 +8,71 @@ const router = createRouter({
       path: '/',
       name: 'dashboard',
       component: DashboardView,
-      meta: { title: 'Dashboard' }
+      meta: { title: 'Dashboard' },
     },
     {
       path: '/database',
       name: 'database',
       component: () => import('@/views/DatabaseView.vue'),
-      meta: { title: 'База данных' }
+      meta: { title: 'База данных' },
     },
     {
       path: '/tables',
       name: 'tables',
       component: () => import('@/views/TablesView.vue'),
-      meta: { title: 'Таблицы' }
+      meta: { title: 'Таблицы' },
     },
     {
       path: '/tables/:tableName',
       name: 'table-detail',
       component: () => import('@/views/TableDetailView.vue'),
       meta: { title: 'Данные таблицы' },
-      props: true
+      props: true,
     },
     {
       path: '/tables/:tableName/schema',
       name: 'table-schema',
       component: () => import('@/views/TableSchemaView.vue'),
       meta: { title: 'Схема таблицы' },
-      props: true
+      props: true,
     },
     {
       path: '/queries',
       name: 'queries',
       component: () => import('@/views/QueriesView.vue'),
-      meta: { title: 'Запросы' }
+      meta: { title: 'Запросы' },
     },
     {
       path: '/analytics',
       name: 'analytics',
       component: () => import('@/views/AnalyticsView.vue'),
-      meta: { title: 'Аналитика' }
+      meta: { title: 'Аналитика' },
     },
     {
       path: '/eda',
       name: 'eda',
       component: () => import('@/views/EDAView.vue'),
-      meta: { title: 'EDA - Исследовательский анализ' }
+      meta: { title: 'EDA - Исследовательский анализ' },
     },
     {
       path: '/data-quality',
       name: 'data-quality',
       component: () => import('@/views/DataQualityView.vue'),
-      meta: { title: 'Качество данных' }
+      meta: { title: 'Качество данных' },
     },
     {
       path: '/kpi',
       name: 'kpi',
       component: () => import('@/views/KPIDashboardView.vue'),
-      meta: { title: 'KPI Дашборд' }
+      meta: { title: 'KPI Дашборд' },
     },
     {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue'),
-      meta: { title: 'Настройки' }
-    }
-  ]
+      meta: { title: 'Настройки' },
+    },
+  ],
 })
 
 // Update document title based on route

@@ -353,10 +353,7 @@ class DatabaseController {
       baseQuery += ` LIMIT ${limit} OFFSET ${offset}`
 
       // Execute queries
-      const [dataResult, countResult] = await Promise.all([
-        query(baseQuery),
-        query(countQuery)
-      ])
+      const [dataResult, countResult] = await Promise.all([query(baseQuery), query(countQuery)])
 
       const totalRows = parseInt(countResult.rows[0]?.total || 0)
       const totalPages = Math.ceil(totalRows / parseInt(limit))
@@ -373,8 +370,8 @@ class DatabaseController {
             total: totalRows,
             pages: totalPages,
             hasNext: parseInt(page) < totalPages,
-            hasPrev: parseInt(page) > 1
-          }
+            hasPrev: parseInt(page) > 1,
+          },
         },
       })
     } catch (error) {
@@ -397,23 +394,23 @@ class DatabaseController {
         cpu: {
           current: Math.floor(Math.random() * 40) + 10, // 10-50%
           average: Math.floor(Math.random() * 30) + 15, // 15-45%
-          max: Math.floor(Math.random() * 30) + 60 // 60-90%
+          max: Math.floor(Math.random() * 30) + 60, // 60-90%
         },
         memory: {
           current: Math.floor(Math.random() * 30) + 50, // 50-80%
           average: Math.floor(Math.random() * 20) + 55, // 55-75%
-          available: `${(Math.random() * 3 + 1).toFixed(1)} GB` // 1-4 GB
+          available: `${(Math.random() * 3 + 1).toFixed(1)} GB`, // 1-4 GB
         },
         io: {
           current: Math.floor(Math.random() * 20) + 5, // 5-25%
           read: `${Math.floor(Math.random() * 50) + 10} MB/s`, // 10-60 MB/s
-          write: `${Math.floor(Math.random() * 20) + 5} MB/s` // 5-25 MB/s
+          write: `${Math.floor(Math.random() * 20) + 5} MB/s`, // 5-25 MB/s
         },
         connections: {
           active: Math.floor(Math.random() * 20) + 5, // 5-25 connections
           max: 100,
-          idle: Math.floor(Math.random() * 10) + 2 // 2-12 idle
-        }
+          idle: Math.floor(Math.random() * 10) + 2, // 2-12 idle
+        },
       }
 
       res.json({
@@ -445,7 +442,7 @@ class DatabaseController {
         transactionsPerSecond: Math.floor(Math.random() * 50) + 10,
         locksCount: Math.floor(Math.random() * 10),
         deadlocks: Math.floor(Math.random() * 3),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }
 
       res.json({
@@ -475,7 +472,7 @@ class DatabaseController {
         { day: 'Чт', queries: Math.floor(Math.random() * 100) + 120 },
         { day: 'Пт', queries: Math.floor(Math.random() * 100) + 150 },
         { day: 'Сб', queries: Math.floor(Math.random() * 100) + 70 },
-        { day: 'Вс', queries: Math.floor(Math.random() * 100) + 40 }
+        { day: 'Вс', queries: Math.floor(Math.random() * 100) + 40 },
       ]
 
       const totalQueries = weeklyData.reduce((sum, day) => sum + day.queries, 0)
@@ -491,8 +488,8 @@ class DatabaseController {
             totalQueries,
             successfulQueries,
             errorQueries,
-            successRate: Math.round(successRate * 100)
-          }
+            successRate: Math.round(successRate * 100),
+          },
         },
       })
     } catch (error) {
@@ -504,7 +501,6 @@ class DatabaseController {
       })
     }
   }
-
 }
 
 module.exports = new DatabaseController()
