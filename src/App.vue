@@ -1,11 +1,11 @@
 <template>
   <div id="app">
-    <DashboardView />
+    <router-view />
   </div>
 </template>
 
 <script setup lang="ts">
-import DashboardView from './views/DashboardView.vue'
+// No imports needed - router-view is global
 </script>
 
 <style>

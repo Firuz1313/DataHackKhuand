@@ -1,5 +1,24 @@
 const { query, getConnectionStatus } = require('../config/database')
 
+// Helper functions
+function formatTimeAgo(date) {
+  if (!date) return 'неизвестно'
+
+  const now = new Date()
+  const diffMs = now - new Date(date)
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+
+  if (diffHours < 1) return 'менее часа назад'
+  if (diffHours < 24) return `${diffHours} ч назад`
+  const diffDays = Math.floor(diffHours / 24)
+  return `${diffDays} д назад`
+}
+
+function getRandomStatus() {
+  const statuses = ['Активна', 'Активна', 'Активна', 'Обновляется', 'Ошибка']
+  return statuses[Math.floor(Math.random() * statuses.length)]
+}
+
 class DatabaseController {
   // Get database connection status
   async getConnectionStatus(req, res) {
@@ -21,7 +40,7 @@ class DatabaseController {
   // Get database statistics
   async getDatabaseStats(req, res) {
     try {
-      console.log('📊 Получение статистики базы данных...')
+      console.log('📊 Получение ст��тистики базы данных...')
 
       // Get table count
       const tableCountResult = await query(`
@@ -125,8 +144,8 @@ class DatabaseController {
         records: Number(
           table.estimated_rows || Math.floor(Math.random() * 10000 + 1000),
         ).toLocaleString('ru-RU'),
-        lastUpdate: this.formatTimeAgo(table.last_updated),
-        status: this.getRandomStatus(),
+        lastUpdate: formatTimeAgo(table.last_updated),
+        status: getRandomStatus(),
         schema: table.schema,
       }))
 
@@ -205,7 +224,7 @@ class DatabaseController {
       if (!tableName) {
         return res.status(400).json({
           success: false,
-          error: 'Название таблицы обязательно',
+          error: 'Н��звание таблицы обязательно',
         })
       }
 
@@ -297,23 +316,190 @@ class DatabaseController {
     }
   }
 
-  // Helper methods
-  formatTimeAgo(date) {
-    if (!date) return 'неизвестно'
+  // Get table data with pagination
+  async getTableData(req, res) {
+    try {
+      const { tableName } = req.params
+      const { page = 1, limit = 50, search = '', sort = '', order = 'ASC' } = req.query
 
-    const now = new Date()
-    const diffMs = now - new Date(date)
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+      if (!tableName) {
+        return res.status(400).json({
+          success: false,
+          error: 'Название таблицы обязательно',
+        })
+      }
 
-    if (diffHours < 1) return 'менее часа назад'
-    if (diffHours < 24) return `${diffHours} ч назад`
-    const diffDays = Math.floor(diffHours / 24)
-    return `${diffDays} д назад`
+      console.log(`📊 Получение данных таблицы: ${tableName}`)
+
+      const offset = (parseInt(page) - 1) * parseInt(limit)
+
+      // Build base query
+      let baseQuery = `SELECT * FROM ${tableName}`
+      let countQuery = `SELECT COUNT(*) as total FROM ${tableName}`
+
+      // Add search if provided
+      if (search) {
+        const searchCondition = ` WHERE CAST(${tableName} AS TEXT) ILIKE '%${search}%'`
+        baseQuery += searchCondition
+        countQuery += searchCondition
+      }
+
+      // Add sorting if provided
+      if (sort) {
+        baseQuery += ` ORDER BY ${sort} ${order}`
+      }
+
+      // Add pagination
+      baseQuery += ` LIMIT ${limit} OFFSET ${offset}`
+
+      // Execute queries
+      const [dataResult, countResult] = await Promise.all([query(baseQuery), query(countQuery)])
+
+      const totalRows = parseInt(countResult.rows[0]?.total || 0)
+      const totalPages = Math.ceil(totalRows / parseInt(limit))
+
+      console.log(`✅ Данные таблицы ${tableName}: ${dataResult.rows.length} строк`)
+
+      res.json({
+        success: true,
+        data: {
+          rows: dataResult.rows,
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: totalRows,
+            pages: totalPages,
+            hasNext: parseInt(page) < totalPages,
+            hasPrev: parseInt(page) > 1,
+          },
+        },
+      })
+    } catch (error) {
+      console.error('❌ Ошибка получения данных таблицы:', error)
+      res.status(500).json({
+        success: false,
+        error: 'Ошибка получения данных таблицы',
+        details: error.message,
+      })
+    }
   }
 
-  getRandomStatus() {
-    const statuses = ['Активна', 'Активна', 'Активна', 'Обновляется', 'Ошибка']
-    return statuses[Math.floor(Math.random() * statuses.length)]
+  // Get database performance metrics
+  async getPerformanceMetrics(req, res) {
+    try {
+      console.log('📈 Получение метрик производительности...')
+
+      // Mock performance data (in real implementation, this would query system tables)
+      const metrics = {
+        cpu: {
+          current: Math.floor(Math.random() * 40) + 10, // 10-50%
+          average: Math.floor(Math.random() * 30) + 15, // 15-45%
+          max: Math.floor(Math.random() * 30) + 60, // 60-90%
+        },
+        memory: {
+          current: Math.floor(Math.random() * 30) + 50, // 50-80%
+          average: Math.floor(Math.random() * 20) + 55, // 55-75%
+          available: `${(Math.random() * 3 + 1).toFixed(1)} GB`, // 1-4 GB
+        },
+        io: {
+          current: Math.floor(Math.random() * 20) + 5, // 5-25%
+          read: `${Math.floor(Math.random() * 50) + 10} MB/s`, // 10-60 MB/s
+          write: `${Math.floor(Math.random() * 20) + 5} MB/s`, // 5-25 MB/s
+        },
+        connections: {
+          active: Math.floor(Math.random() * 20) + 5, // 5-25 connections
+          max: 100,
+          idle: Math.floor(Math.random() * 10) + 2, // 2-12 idle
+        },
+      }
+
+      res.json({
+        success: true,
+        data: metrics,
+      })
+    } catch (error) {
+      console.error('❌ Ошибка получения метрик производительности:', error)
+      res.status(500).json({
+        success: false,
+        error: 'Ошибка получения метрик производительности',
+        details: error.message,
+      })
+    }
+  }
+
+  // Get real-time monitoring data
+  async getRealTimeStats(req, res) {
+    try {
+      console.log('⏱️ Получение данных мониторинга в реальном времени...')
+
+      // Mock real-time data
+      const stats = {
+        activeConnections: Math.floor(Math.random() * 25) + 5,
+        queriesPerMinute: Math.floor(Math.random() * 100) + 20,
+        avgResponseTime: Math.floor(Math.random() * 200) + 50,
+        cacheHitRate: Math.floor(Math.random() * 20) + 80, // 80-100%
+        cacheSize: `${(Math.random() * 2 + 1).toFixed(1)} GB`,
+        transactionsPerSecond: Math.floor(Math.random() * 50) + 10,
+        locksCount: Math.floor(Math.random() * 10),
+        deadlocks: Math.floor(Math.random() * 3),
+        timestamp: new Date().toISOString(),
+      }
+
+      res.json({
+        success: true,
+        data: stats,
+      })
+    } catch (error) {
+      console.error('❌ Ошибка получения данных мониторинга:', error)
+      res.status(500).json({
+        success: false,
+        error: 'Ошибка получения данных мониторинга',
+        details: error.message,
+      })
+    }
+  }
+
+  // Get weekly activity data for analytics
+  async getWeeklyActivity(req, res) {
+    try {
+      console.log('📊 Получение недельной активности...')
+
+      // Mock weekly activity data
+      const weeklyData = [
+        { day: 'Пн', queries: Math.floor(Math.random() * 100) + 50 },
+        { day: 'Вт', queries: Math.floor(Math.random() * 100) + 60 },
+        { day: 'Ср', queries: Math.floor(Math.random() * 100) + 80 },
+        { day: 'Чт', queries: Math.floor(Math.random() * 100) + 120 },
+        { day: 'Пт', queries: Math.floor(Math.random() * 100) + 150 },
+        { day: 'Сб', queries: Math.floor(Math.random() * 100) + 70 },
+        { day: 'Вс', queries: Math.floor(Math.random() * 100) + 40 },
+      ]
+
+      const totalQueries = weeklyData.reduce((sum, day) => sum + day.queries, 0)
+      const successRate = 0.92 + Math.random() * 0.06 // 92-98%
+      const successfulQueries = Math.floor(totalQueries * successRate)
+      const errorQueries = totalQueries - successfulQueries
+
+      res.json({
+        success: true,
+        data: {
+          weeklyActivity: weeklyData,
+          summary: {
+            totalQueries,
+            successfulQueries,
+            errorQueries,
+            successRate: Math.round(successRate * 100),
+          },
+        },
+      })
+    } catch (error) {
+      console.error('❌ Ошибка получения недельной активности:', error)
+      res.status(500).json({
+        success: false,
+        error: 'Ошибка получения недельной активности',
+        details: error.message,
+      })
+    }
   }
 }
 
