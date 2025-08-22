@@ -202,7 +202,10 @@ const fetchTables = async () => {
     const dbTables = await dbService.getTables()
     tables.value = dbTables
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Ошибка загрузки таблиц'
+    const errorMessage = err instanceof Error ? err.message : 'Ошибка загрузки таблиц'
+    error.value = errorMessage.includes('429')
+      ? 'Слишком много запросов. Попробуйте через несколько секунд.'
+      : errorMessage
     console.error('Error fetching tables:', err)
   } finally {
     loading.value = false
@@ -241,7 +244,15 @@ const getStatusBadgeClass = (status: string): string => {
   }
 }
 
+// Delay API calls to prevent rate limiting when multiple components mount
+const delayedFetch = async () => {
+  // Add random delay between 300-800ms to stagger API calls
+  const delay = 300 + Math.random() * 500
+  await new Promise((resolve) => setTimeout(resolve, delay))
+  await fetchTables()
+}
+
 onMounted(() => {
-  fetchTables()
+  delayedFetch()
 })
 </script>

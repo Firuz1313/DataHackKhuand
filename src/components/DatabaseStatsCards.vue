@@ -202,14 +202,25 @@ const fetchStats = async () => {
     const dbStats = await dbService.getDatabaseStats()
     stats.value = dbStats
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Неизвестная ошибка'
+    const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка'
+    error.value = errorMessage.includes('429')
+      ? 'Слишком много запросов. Подождите немного.'
+      : errorMessage
     console.error('Error fetching database stats:', err)
   } finally {
     loading.value = false
   }
 }
 
+// Delay API calls to prevent rate limiting when multiple components mount
+const delayedFetch = async () => {
+  // Add random delay between 100-600ms to stagger API calls
+  const delay = 100 + Math.random() * 500
+  await new Promise((resolve) => setTimeout(resolve, delay))
+  await fetchStats()
+}
+
 onMounted(() => {
-  fetchStats()
+  delayedFetch()
 })
 </script>

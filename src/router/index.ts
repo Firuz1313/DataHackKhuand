@@ -49,24 +49,6 @@ const router = createRouter({
       meta: { title: 'Аналитика' },
     },
     {
-      path: '/eda',
-      name: 'eda',
-      component: () => import('@/views/EDAView.vue'),
-      meta: { title: 'EDA - Исследовательский анализ' },
-    },
-    {
-      path: '/data-quality',
-      name: 'data-quality',
-      component: () => import('@/views/DataQualityView.vue'),
-      meta: { title: 'Качество данных' },
-    },
-    {
-      path: '/kpi',
-      name: 'kpi',
-      component: () => import('@/views/KPIDashboardView.vue'),
-      meta: { title: 'KPI Дашборд' },
-    },
-    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue'),

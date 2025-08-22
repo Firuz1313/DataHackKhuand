@@ -115,28 +115,6 @@
 
         <li>
           <router-link
-            to="/kpi"
-            :class="
-              $route.name === 'kpi'
-                ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
-                : 'text-gray-600 hover:bg-gray-50'
-            "
-            class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
-          >
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-              />
-            </svg>
-            KPI Дашборд
-          </router-link>
-        </li>
-
-        <li>
-          <router-link
             to="/analytics"
             :class="
               $route.name === 'analytics'
@@ -154,50 +132,6 @@
               />
             </svg>
             Аналитика
-          </router-link>
-        </li>
-
-        <li>
-          <router-link
-            to="/eda"
-            :class="
-              $route.name === 'eda'
-                ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
-                : 'text-gray-600 hover:bg-gray-50'
-            "
-            class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
-          >
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-              />
-            </svg>
-            EDA Анализ
-          </router-link>
-        </li>
-
-        <li>
-          <router-link
-            to="/data-quality"
-            :class="
-              $route.name === 'data-quality'
-                ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
-                : 'text-gray-600 hover:bg-gray-50'
-            "
-            class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
-          >
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-              />
-            </svg>
-            Качество данных
           </router-link>
         </li>
       </ul>
@@ -330,7 +264,7 @@ const testConnections = async () => {
   testing.value = true
 
   try {
-    // Test Neon connection
+    // Test Neon connection with better error handling
     connectionStatus.neon = await dbService.testConnection()
 
     // Legacy connection is not directly testable from frontend due to SSH requirement
@@ -345,7 +279,15 @@ const testConnections = async () => {
   }
 }
 
+// Delay API calls to prevent rate limiting when multiple components mount
+const delayedConnectionTest = async () => {
+  // Add random delay between 500-1500ms to stagger API calls
+  const delay = 500 + Math.random() * 1000
+  await new Promise((resolve) => setTimeout(resolve, delay))
+  await testConnections()
+}
+
 onMounted(() => {
-  testConnections()
+  delayedConnectionTest()
 })
 </script>
