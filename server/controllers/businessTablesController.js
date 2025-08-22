@@ -14,8 +14,8 @@ class BusinessTablesController {
       // Split SQL into statements and execute
       const statements = sqlContent
         .split(';')
-        .map(s => s.trim())
-        .filter(s => s.length > 0 && !s.startsWith('--') && s !== '\n')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0 && !s.startsWith('--') && s !== '\n')
 
       let executedCount = 0
       const results = []
@@ -39,17 +39,16 @@ class BusinessTablesController {
         success: true,
         data: {
           executed: executedCount,
-          total: statements.length
+          total: statements.length,
         },
-        message: 'Business tables setup completed successfully'
+        message: 'Business tables setup completed successfully',
       })
-
     } catch (error) {
       console.error('❌ Error setting up business tables:', error)
       res.status(500).json({
         success: false,
         error: 'Error setting up business tables',
-        details: error.message
+        details: error.message,
       })
     }
   }
@@ -100,28 +99,27 @@ class BusinessTablesController {
           const countResult = await query(`SELECT COUNT(*) as count FROM ${table.table_name}`)
           tablesWithCounts.push({
             ...table,
-            record_count: parseInt(countResult.rows[0].count)
+            record_count: parseInt(countResult.rows[0].count),
           })
         } catch (error) {
           console.warn(`Could not get count for table ${table.table_name}:`, error.message)
           tablesWithCounts.push({
             ...table,
-            record_count: 0
+            record_count: 0,
           })
         }
       }
 
       res.json({
         success: true,
-        data: tablesWithCounts
+        data: tablesWithCounts,
       })
-
     } catch (error) {
       console.error('❌ Error getting business tables summary:', error)
       res.status(500).json({
         success: false,
         error: 'Error getting business tables summary',
-        details: error.message
+        details: error.message,
       })
     }
   }
@@ -155,7 +153,7 @@ class BusinessTablesController {
 
       const [dataResult, countResult] = await Promise.all([
         query(dataQuery, params),
-        query(countQuery, params.slice(0, -2))
+        query(countQuery, params.slice(0, -2)),
       ])
 
       const totalRows = parseInt(countResult.rows[0].total)
@@ -171,22 +169,21 @@ class BusinessTablesController {
             total: totalRows,
             pages: totalPages,
             hasNext: parseInt(page) < totalPages,
-            hasPrev: parseInt(page) > 1
-          }
-        }
+            hasPrev: parseInt(page) > 1,
+          },
+        },
       })
-
     } catch (error) {
       console.error('❌ Error getting customers:', error)
       res.status(500).json({
         success: false,
         error: 'Error getting customers data',
-        details: error.message
+        details: error.message,
       })
     }
   }
 
-  // Get products data  
+  // Get products data
   async getProducts(req, res) {
     try {
       const { page = 1, limit = 50, search = '', sort = 'id', order = 'ASC' } = req.query
@@ -224,7 +221,7 @@ class BusinessTablesController {
 
       const [dataResult, countResult] = await Promise.all([
         query(dataQuery, params),
-        query(countQuery, params.slice(0, -2))
+        query(countQuery, params.slice(0, -2)),
       ])
 
       const totalRows = parseInt(countResult.rows[0].total)
@@ -240,17 +237,16 @@ class BusinessTablesController {
             total: totalRows,
             pages: totalPages,
             hasNext: parseInt(page) < totalPages,
-            hasPrev: parseInt(page) > 1
-          }
-        }
+            hasPrev: parseInt(page) > 1,
+          },
+        },
       })
-
     } catch (error) {
       console.error('❌ Error getting products:', error)
       res.status(500).json({
         success: false,
         error: 'Error getting products data',
-        details: error.message
+        details: error.message,
       })
     }
   }
@@ -265,7 +261,8 @@ class BusinessTablesController {
       let params = []
 
       if (search) {
-        whereClause = 'WHERE (o.order_number ILIKE $1 OR c.full_name ILIKE $1 OR c.company_name ILIKE $1)'
+        whereClause =
+          'WHERE (o.order_number ILIKE $1 OR c.full_name ILIKE $1 OR c.company_name ILIKE $1)'
         params.push(`%${search}%`)
       }
 
@@ -291,7 +288,7 @@ class BusinessTablesController {
 
       const [dataResult, countResult] = await Promise.all([
         query(dataQuery, params),
-        query(countQuery, params.slice(0, -2))
+        query(countQuery, params.slice(0, -2)),
       ])
 
       const totalRows = parseInt(countResult.rows[0].total)
@@ -307,17 +304,16 @@ class BusinessTablesController {
             total: totalRows,
             pages: totalPages,
             hasNext: parseInt(page) < totalPages,
-            hasPrev: parseInt(page) > 1
-          }
-        }
+            hasPrev: parseInt(page) > 1,
+          },
+        },
       })
-
     } catch (error) {
       console.error('❌ Error getting orders:', error)
       res.status(500).json({
         success: false,
         error: 'Error getting orders data',
-        details: error.message
+        details: error.message,
       })
     }
   }
@@ -351,7 +347,7 @@ class BusinessTablesController {
 
       const [dataResult, countResult] = await Promise.all([
         query(dataQuery, params),
-        query(countQuery, params.slice(0, -2))
+        query(countQuery, params.slice(0, -2)),
       ])
 
       const totalRows = parseInt(countResult.rows[0].total)
@@ -367,17 +363,16 @@ class BusinessTablesController {
             total: totalRows,
             pages: totalPages,
             hasNext: parseInt(page) < totalPages,
-            hasPrev: parseInt(page) > 1
-          }
-        }
+            hasPrev: parseInt(page) > 1,
+          },
+        },
       })
-
     } catch (error) {
       console.error('❌ Error getting suppliers:', error)
       res.status(500).json({
         success: false,
         error: 'Error getting suppliers data',
-        details: error.message
+        details: error.message,
       })
     }
   }
@@ -451,16 +446,15 @@ class BusinessTablesController {
           sales: salesStats.rows[0],
           topProducts: topProducts.rows,
           customerTiers: customerTiers.rows,
-          inventory: inventoryAlerts.rows[0]
-        }
+          inventory: inventoryAlerts.rows[0],
+        },
       })
-
     } catch (error) {
       console.error('❌ Error getting business analytics:', error)
       res.status(500).json({
         success: false,
         error: 'Error getting business analytics',
-        details: error.message
+        details: error.message,
       })
     }
   }
@@ -474,11 +468,18 @@ class BusinessTablesController {
       console.log(`📤 Exporting ${tableName} data in ${format} format...`)
 
       // Validate table name
-      const allowedTables = ['customers', 'suppliers', 'products', 'orders', 'order_items', 'inventory_movements']
+      const allowedTables = [
+        'customers',
+        'suppliers',
+        'products',
+        'orders',
+        'order_items',
+        'inventory_movements',
+      ]
       if (!allowedTables.includes(tableName)) {
         return res.status(400).json({
           success: false,
-          error: 'Table not allowed for export'
+          error: 'Table not allowed for export',
         })
       }
 
@@ -489,46 +490,54 @@ class BusinessTablesController {
         if (result.rows.length === 0) {
           return res.status(404).json({
             success: false,
-            error: 'No data to export'
+            error: 'No data to export',
           })
         }
 
         const headers = Object.keys(result.rows[0]).join(',')
-        const csvData = result.rows.map(row => 
-          Object.values(row).map(value => 
-            typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value
-          ).join(',')
-        ).join('\n')
+        const csvData = result.rows
+          .map((row) =>
+            Object.values(row)
+              .map((value) =>
+                typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value,
+              )
+              .join(','),
+          )
+          .join('\n')
 
         res.setHeader('Content-Type', 'text/csv')
         res.setHeader('Content-Disposition', `attachment; filename="${tableName}_export.csv"`)
         res.send(headers + '\n' + csvData)
-
       } else if (format === 'sql') {
         // Generate INSERT statements
         if (result.rows.length === 0) {
           return res.status(404).json({
             success: false,
-            error: 'No data to export'
+            error: 'No data to export',
           })
         }
 
         const tableCols = Object.keys(result.rows[0])
-        const sqlStatements = result.rows.map(row => {
-          const values = Object.values(row).map(value => {
-            if (value === null) return 'NULL'
-            if (typeof value === 'string') return `'${value.replace(/'/g, "''")}'`
-            if (value instanceof Date) return `'${value.toISOString()}'`
-            return value
-          }).join(', ')
-          
-          return `INSERT INTO ${tableName} (${tableCols.join(', ')}) VALUES (${values});`
-        }).join('\n')
+        const sqlStatements = result.rows
+          .map((row) => {
+            const values = Object.values(row)
+              .map((value) => {
+                if (value === null) return 'NULL'
+                if (typeof value === 'string') return `'${value.replace(/'/g, "''")}'`
+                if (value instanceof Date) return `'${value.toISOString()}'`
+                return value
+              })
+              .join(', ')
+
+            return `INSERT INTO ${tableName} (${tableCols.join(', ')}) VALUES (${values});`
+          })
+          .join('\n')
 
         res.setHeader('Content-Type', 'application/sql')
         res.setHeader('Content-Disposition', `attachment; filename="${tableName}_export.sql"`)
-        res.send(`-- Export of ${tableName} table\n-- Generated: ${new Date().toISOString()}\n\n${sqlStatements}`)
-
+        res.send(
+          `-- Export of ${tableName} table\n-- Generated: ${new Date().toISOString()}\n\n${sqlStatements}`,
+        )
       } else {
         // Return JSON
         res.json({
@@ -537,17 +546,16 @@ class BusinessTablesController {
             table: tableName,
             exported_at: new Date().toISOString(),
             record_count: result.rows.length,
-            records: result.rows
-          }
+            records: result.rows,
+          },
         })
       }
-
     } catch (error) {
       console.error('❌ Error exporting table data:', error)
       res.status(500).json({
         success: false,
         error: 'Error exporting table data',
-        details: error.message
+        details: error.message,
       })
     }
   }

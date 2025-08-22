@@ -9,14 +9,14 @@ router.get('/status', async (req, res) => {
     const status = await migrationManager.getMigrationStatus()
     res.json({
       success: true,
-      data: status
+      data: status,
     })
   } catch (error) {
     console.error('Error getting migration status:', error)
     res.status(500).json({
       success: false,
       error: 'Ошибка получения статуса миграций',
-      details: error.message
+      details: error.message,
     })
   }
 })
@@ -28,14 +28,14 @@ router.post('/run', async (req, res) => {
     res.json({
       success: true,
       data: result,
-      message: `Выполнено ${result.executed} миграций из ${result.total}`
+      message: `Выполнено ${result.executed} миграций из ${result.total}`,
     })
   } catch (error) {
     console.error('Error running migrations:', error)
     res.status(500).json({
       success: false,
       error: 'Ошибка выполнения миграций',
-      details: error.message
+      details: error.message,
     })
   }
 })
@@ -47,14 +47,14 @@ router.post('/:name/rollback', async (req, res) => {
     await migrationManager.rollbackMigration(name)
     res.json({
       success: true,
-      message: `Миграция ${name} успешно откачена`
+      message: `Миграция ${name} успешно откачена`,
     })
   } catch (error) {
     console.error('Error rolling back migration:', error)
     res.status(500).json({
       success: false,
       error: 'Ошибка отката миграции',
-      details: error.message
+      details: error.message,
     })
   }
 })
@@ -67,7 +67,7 @@ router.post('/create', async (req, res) => {
     if (!name || !sql) {
       return res.status(400).json({
         success: false,
-        error: 'Название и SQL код миграции обязательны'
+        error: 'Название и SQL код миграции обязательны',
       })
     }
 
@@ -75,14 +75,14 @@ router.post('/create', async (req, res) => {
     res.json({
       success: true,
       data: migration,
-      message: 'Миграция создана успешно'
+      message: 'Миграция создана успешно',
     })
   } catch (error) {
     console.error('Error creating migration:', error)
     res.status(500).json({
       success: false,
       error: 'Ошибка создания миграции',
-      details: error.message
+      details: error.message,
     })
   }
 })

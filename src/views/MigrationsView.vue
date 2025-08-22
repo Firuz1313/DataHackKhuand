@@ -12,29 +12,29 @@
       <main class="p-6">
         <!-- Welcome Section -->
         <div class="mb-8">
-          <h2 class="text-3xl font-bold text-gray-900 mb-2">
-            Управление миграциями
-          </h2>
-          <p class="text-gray-800 font-medium">
-            Контроль и управление миграциями базы данных
-          </p>
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">Управление миграциями</h2>
+          <p class="text-gray-800 font-medium">Контроль и управление миграциями базы данных</p>
         </div>
 
         <!-- Migration Status Card -->
         <div class="bg-white rounded-lg shadow-card border border-gray-200 p-6 mb-8">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">Статус миграций</h3>
-          
+
           <div v-if="migrationStatus" class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="text-center">
               <div class="text-3xl font-bold text-gray-900 mb-2">{{ migrationStatus.total }}</div>
               <div class="text-sm text-gray-700 font-medium">Всего миграций</div>
             </div>
             <div class="text-center">
-              <div class="text-3xl font-bold text-green-600 mb-2">{{ migrationStatus.executed }}</div>
+              <div class="text-3xl font-bold text-green-600 mb-2">
+                {{ migrationStatus.executed }}
+              </div>
               <div class="text-sm text-gray-700 font-medium">Выполнено</div>
             </div>
             <div class="text-center">
-              <div class="text-3xl font-bold text-orange-600 mb-2">{{ migrationStatus.pending }}</div>
+              <div class="text-3xl font-bold text-orange-600 mb-2">
+                {{ migrationStatus.pending }}
+              </div>
               <div class="text-sm text-gray-700 font-medium">Ожидают</div>
             </div>
           </div>
@@ -104,9 +104,11 @@
           <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Список миграций</h3>
           </div>
-          
+
           <div v-if="loading" class="p-12 text-center">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <div
+              class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"
+            ></div>
             <p class="text-gray-700 font-medium">Загрузка миграций...</p>
           </div>
 
@@ -118,16 +120,24 @@
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Миграция
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Статус
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Выполнена
                   </th>
-                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Действия
                   </th>
                 </tr>
@@ -140,14 +150,22 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span
-                      :class="migration.executed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
+                      :class="
+                        migration.executed
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      "
                       class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
                     >
                       {{ migration.executed ? 'Выполнена' : 'Ожидает' }}
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
-                    {{ migration.executedAt ? new Date(migration.executedAt).toLocaleString('ru-RU') : '-' }}
+                    {{
+                      migration.executedAt
+                        ? new Date(migration.executedAt).toLocaleString('ru-RU')
+                        : '-'
+                    }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -172,7 +190,8 @@
             <div>
               <h4 class="font-semibold text-gray-800 mb-2">Файлы миграций</h4>
               <p class="text-sm text-gray-700 font-medium mb-2">
-                Все миграции находятся в папке <code class="bg-gray-200 px-1 rounded">server/migrations/</code>
+                Все миграции находятся в папке
+                <code class="bg-gray-200 px-1 rounded">server/migrations/</code>
               </p>
               <ul class="text-sm text-gray-600 space-y-1">
                 <li>• 001_create_migrations_table.sql</li>
@@ -186,8 +205,13 @@
                 Специальный файл для тестирования жюри:
               </p>
               <ul class="text-sm text-gray-600 space-y-1">
-                <li>• <code class="bg-gray-200 px-1 rounded">JURY_TEST_MIGRATION.sql</code> - полная настройка</li>
-                <li>• <code class="bg-gray-200 px-1 rounded">JURY_TESTING.md</code> - документация</li>
+                <li>
+                  • <code class="bg-gray-200 px-1 rounded">JURY_TEST_MIGRATION.sql</code> - полная
+                  настройка
+                </li>
+                <li>
+                  • <code class="bg-gray-200 px-1 rounded">JURY_TESTING.md</code> - документация
+                </li>
               </ul>
             </div>
           </div>
@@ -229,10 +253,18 @@ const loadMigrationStatus = async () => {
       executed: 2,
       pending: 1,
       migrations: [
-        { name: '001_create_migrations_table', executed: true, executedAt: new Date().toISOString() },
-        { name: '002_create_custom_tables_management', executed: true, executedAt: new Date().toISOString() },
+        {
+          name: '001_create_migrations_table',
+          executed: true,
+          executedAt: new Date().toISOString(),
+        },
+        {
+          name: '002_create_custom_tables_management',
+          executed: true,
+          executedAt: new Date().toISOString(),
+        },
         { name: 'business_tables_complete', executed: false, executedAt: null },
-      ]
+      ],
     }
     migrations.value = migrationStatus.value.migrations
   } finally {
@@ -264,7 +296,7 @@ const setupBusinessTables = async () => {
     settingUp.value = true
     const response = await fetch('/api/business-tables/setup', { method: 'POST' })
     const result = await response.json()
-    
+
     if (result.success) {
       alert(`✅ Бизнес-таблицы настроены успешно! Выполнено ${result.data.executed} операций.`)
       await loadMigrationStatus()
@@ -283,7 +315,7 @@ const rollbackMigration = async (migrationName: string) => {
   if (!confirm(`Вы уверены, что хотите откатить миграцию "${migrationName}"?`)) {
     return
   }
-  
+
   try {
     await customTablesService.rollbackMigration(migrationName)
     alert(`✅ Миграция "${migrationName}" успешно откачена`)

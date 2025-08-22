@@ -12,9 +12,7 @@
       <main class="p-6">
         <!-- Welcome Section -->
         <div class="mb-8">
-          <h2 class="text-3xl font-bold text-gray-900 mb-2">
-            Административная панель
-          </h2>
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">Административная панель</h2>
           <p class="text-gray-800 font-medium">
             Управление бизнес-таблицами, миграциями и системными настройками
           </p>
@@ -81,9 +79,7 @@
                   @click="viewTable(table.name)"
                 >
                   <div class="flex items-center space-x-3">
-                    <div
-                      class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"
-                    >
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                       <svg
                         class="w-5 h-5 text-blue-600"
                         fill="none"
@@ -136,7 +132,9 @@
                     <component :is="getActivityIcon(activity.type)" class="w-4 h-4 text-white" />
                   </div>
                   <div class="flex-1 min-w-0">
-                    <div class="text-sm font-semibold text-gray-900">{{ activity.description }}</div>
+                    <div class="text-sm font-semibold text-gray-900">
+                      {{ activity.description }}
+                    </div>
                     <div class="text-xs text-gray-700 font-medium">{{ activity.table_name }}</div>
                     <div class="text-xs text-gray-600 font-medium">{{ activity.created_at }}</div>
                   </div>
@@ -188,9 +186,11 @@
                 <div class="mt-4">
                   <div class="flex justify-between text-sm mb-1">
                     <span class="text-gray-700 font-medium">Прогресс</span>
-                    <span class="text-gray-700 font-medium">{{
-                      Math.round((migrationStatus.executed / migrationStatus.total) * 100)
-                    }}%</span>
+                    <span class="text-gray-700 font-medium"
+                      >{{
+                        Math.round((migrationStatus.executed / migrationStatus.total) * 100)
+                      }}%</span
+                    >
                   </div>
                   <div class="w-full bg-gray-200 rounded-full h-2">
                     <div
@@ -450,7 +450,9 @@ const quickStats = computed(() => [
   {
     id: 2,
     label: 'Записей данных',
-    value: businessTables.value.reduce((sum, table) => sum + (table.record_count || 0), 0).toLocaleString('ru-RU'),
+    value: businessTables.value
+      .reduce((sum, table) => sum + (table.record_count || 0), 0)
+      .toLocaleString('ru-RU'),
     icon: UsersIcon,
     iconBg: 'bg-green-500',
     link: '/database',

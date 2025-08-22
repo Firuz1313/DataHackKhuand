@@ -142,7 +142,7 @@ const startServer = async () => {
             console.log(`⚠️ Настройка бизнес-таблиц: ${data.message || data.error}`)
           }
         },
-        status: () => mockRes
+        status: () => mockRes,
       }
 
       await businessTablesController.setupBusinessTables({}, mockRes)

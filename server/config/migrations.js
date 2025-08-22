@@ -16,13 +16,13 @@ class MigrationManager {
 
       // Get list of migration files
       const migrationFiles = await this.getMigrationFiles()
-      
+
       // Get executed migrations
       const executedMigrations = await this.getExecutedMigrations()
-      
+
       // Find pending migrations
       const pendingMigrations = migrationFiles.filter(
-        file => !executedMigrations.includes(this.getMigrationName(file))
+        (file) => !executedMigrations.includes(this.getMigrationName(file)),
       )
 
       if (pendingMigrations.length === 0) {
@@ -47,7 +47,6 @@ class MigrationManager {
 
       console.log(`🎉 В��полнено ${executedCount} миграций`)
       return { executed: executedCount, total: migrationFiles.length }
-
     } catch (error) {
       console.error('❌ Ошибка при выполнении миграций:', error)
       throw error
@@ -69,9 +68,7 @@ class MigrationManager {
   async getMigrationFiles() {
     try {
       const files = await fs.readdir(this.migrationsPath)
-      return files
-        .filter(file => file.endsWith('.sql'))
-        .sort() // Ensure proper order
+      return files.filter((file) => file.endsWith('.sql')).sort() // Ensure proper order
     } catch (error) {
       if (error.code === 'ENOENT') {
         console.log('📁 Папка миграций не найдена, создаю...')
@@ -85,7 +82,7 @@ class MigrationManager {
   async getExecutedMigrations() {
     try {
       const result = await query('SELECT name FROM migrations ORDER BY executed_at')
-      return result.rows.map(row => row.name)
+      return result.rows.map((row) => row.name)
     } catch (error) {
       // If table doesn't exist, return empty array
       return []
@@ -99,15 +96,15 @@ class MigrationManager {
   async executeMigration(filename) {
     const migrationPath = path.join(this.migrationsPath, filename)
     const migrationName = this.getMigrationName(filename)
-    
+
     // Read migration file
     const migrationSQL = await fs.readFile(migrationPath, 'utf8')
-    
+
     // Split by statements and execute
     const statements = migrationSQL
       .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith('--'))
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0 && !s.startsWith('--'))
 
     // Execute each statement
     for (const statement of statements) {
@@ -124,10 +121,9 @@ class MigrationManager {
       console.log(`🔄 Откат миграции ${migrationName}...`)
 
       // Get rollback SQL
-      const result = await query(
-        'SELECT rollback_sql FROM migrations WHERE name = $1',
-        [migrationName]
-      )
+      const result = await query('SELECT rollback_sql FROM migrations WHERE name = $1', [
+        migrationName,
+      ])
 
       if (result.rows.length === 0) {
         throw new Error(`Миграция ${migrationName} не найдена`)
@@ -141,8 +137,8 @@ class MigrationManager {
       // Execute rollback
       const statements = rollbackSQL
         .split(';')
-        .map(s => s.trim())
-        .filter(s => s.length > 0)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
 
       for (const statement of statements) {
         if (statement.trim()) {
@@ -155,7 +151,6 @@ class MigrationManager {
 
       console.log(`✅ Миграция ${migrationName} успешно откачена`)
       return true
-
     } catch (error) {
       console.error(`❌ Ошибка отката миграции ${migrationName}:`, error)
       throw error
@@ -167,24 +162,24 @@ class MigrationManager {
       const migrationFiles = await this.getMigrationFiles()
       const executedMigrations = await this.getExecutedMigrations()
 
-      const status = migrationFiles.map(file => {
+      const status = migrationFiles.map((file) => {
         const name = this.getMigrationName(file)
         return {
           name,
           file,
           executed: executedMigrations.includes(name),
-          executedAt: null
+          executedAt: null,
         }
       })
 
       // Get execution dates
       const result = await query('SELECT name, executed_at FROM migrations')
       const executionDates = {}
-      result.rows.forEach(row => {
+      result.rows.forEach((row) => {
         executionDates[row.name] = row.executed_at
       })
 
-      status.forEach(migration => {
+      status.forEach((migration) => {
         if (migration.executed && executionDates[migration.name]) {
           migration.executedAt = executionDates[migration.name]
         }
@@ -194,9 +189,8 @@ class MigrationManager {
         migrations: status,
         total: migrationFiles.length,
         executed: executedMigrations.length,
-        pending: migrationFiles.length - executedMigrations.length
+        pending: migrationFiles.length - executedMigrations.length,
       }
-
     } catch (error) {
       console.error('❌ Ошибка получения статуса миграций:', error)
       throw error
@@ -227,9 +221,8 @@ ${rollbackSQL ? `INSERT INTO migrations (name, rollback_sql) VALUES ('${this.get
       return {
         filename,
         name: this.getMigrationName(filename),
-        path: filepath
+        path: filepath,
       }
-
     } catch (error) {
       console.error('❌ Ошибка создания миграции:', error)
       throw error

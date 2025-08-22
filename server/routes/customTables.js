@@ -8,13 +8,13 @@ router.get('/', async (req, res) => {
     res.json({
       success: true,
       data: [],
-      message: 'Custom tables feature available'
+      message: 'Custom tables feature available',
     })
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'Error getting custom tables',
-      details: error.message
+      details: error.message,
     })
   }
 })
