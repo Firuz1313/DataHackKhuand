@@ -156,6 +156,74 @@
             Аналитика
           </router-link>
         </li>
+
+        <li>
+          <router-link
+            to="/admin"
+            :class="
+              $route.name === 'admin' || $route.path.startsWith('/admin')
+                ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
+                : 'text-gray-600 hover:bg-gray-50'
+            "
+            class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
+          >
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
+            </svg>
+            Администрирование
+          </router-link>
+        </li>
+
+        <!-- Admin Submenu -->
+        <template v-if="$route.path.startsWith('/admin')">
+          <li class="ml-4">
+            <router-link
+              to="/admin/custom-tables"
+              :class="
+                $route.name === 'custom-tables'
+                  ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
+                  : 'text-gray-500 hover:bg-gray-50'
+              "
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              Бизнес-таблицы
+            </router-link>
+          </li>
+          <li class="ml-4">
+            <router-link
+              to="/admin/migrations"
+              :class="
+                $route.name === 'migrations'
+                  ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
+                  : 'text-gray-500 hover:bg-gray-50'
+              "
+              class="flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Миграции
+            </router-link>
+          </li>
+        </template>
       </ul>
 
       <!-- Divider -->
