@@ -228,6 +228,7 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import DashboardSidebar from '@/components/DashboardSidebar.vue'
 import DashboardHeader from '@/components/DashboardHeader.vue'
+import { dbService } from '@/services/database'
 
 const loading = ref(false)
 const lastUpdate = ref(new Date().toLocaleTimeString())
