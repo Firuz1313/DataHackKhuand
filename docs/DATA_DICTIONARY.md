@@ -1,308 +1,339 @@
-# 📖 Data Dictionary - DataBoard Analytics
+# Словарь данных
 
-> Comprehensive reference for all database tables, columns, data types, and business definitions used in the DataBoard analytics platform.
+Подробное описание структуры базы данных, включающее все таблицы, столбцы, типы данных и их назначение.
 
-## 📋 Table of Contents
+## 📋 Обзор базы данных
 
-- [Database Overview](#database-overview)
-- [Core Business Tables](#core-business-tables)
-- [Dimension Tables](#dimension-tables)
-- [Lookup Tables](#lookup-tables)
-- [Data Types Reference](#data-types-reference)
-- [Business Rules & Constraints](#business-rules--constraints)
+- **Название БД**: hackathon
+- **Тип СУБД**: PostgreSQL
+- **Версия**: 14+
+- **Кодировка**: UTF-8
+- **Часовой пояс**: UTC
+- **Общее количество таблиц**: 11 основных таблиц
+- **Приблизительный размер**: ~56 MB
 
----
+## 🗂 Структура таблиц
 
-## 🗃️ Database Overview
+### 1. Таблица `customers` - Клиенты
 
-**Database**: PostgreSQL 12+  
-**Schema**: public  
-**Character Set**: UTF-8  
-**Collation**: Russian/English support  
-**Total Tables**: 15+  
-**Total Records**: 500,000+
+Хранит информацию о клиентах компании.
 
----
+| Столбец | Тип данных | Обязательный | Ключ | Описание | Возможные значения |
+|---------|------------|--------------|------|----------|-------------------|
+| `id` | SERIAL | ✅ | PK | Уникальный идентификатор клиента | Автоинкремент от 1 |
+| `name` | VARCHAR(255) | ✅ | - | Полное имя клиента | Любая строка до 255 символов |
+| `email` | VARCHAR(255) | ✅ | UNIQUE | Email адрес для связи | Валидный email формат |
+| `phone` | VARCHAR(20) | ❌ | - | Телефонный номер | +7XXXXXXXXXX или 8XXXXXXXXXX |
+| `company_name` | VARCHAR(255) | ❌ | - | Название компании (для B2B) | Любая строка или NULL |
+| `industry` | VARCHAR(100) | ❌ | - | Отрасль деятельности | IT, Производство, Торговля, etc. |
+| `status` | VARCHAR(20) | ✅ | - | Статус клиента | `active`, `inactive`, `suspended` |
+| `registration_date` | DATE | ✅ | - | Дата регистрации | YYYY-MM-DD |
+| `last_login` | TIMESTAMP | ❌ | - | Последний вход в систему | YYYY-MM-DD HH:MM:SS |
+| `created_at` | TIMESTAMP | ✅ | - | Дата создания записи | YYYY-MM-DD HH:MM:SS |
+| `updated_at` | TIMESTAMP | ✅ | - | Дата последнего обновления | YYYY-MM-DD HH:MM:SS |
 
-## 🏢 Core Business Tables
+**Индексы:**
+- `idx_customers_email` - уникальный индекс по email
+- `idx_customers_status` - индекс по статусу
+- `idx_customers_registration` - индекс по дате регистрации
+- `idx_customers_company` - индекс по названию компании
 
-### 📦 `orders` - Customer Orders
-
-Primary fact table containing all customer order transactions.
-
-| Column              | Data Type     | Nullable | Description               | Example Values              | Business Rules                       |
-| ------------------- | ------------- | -------- | ------------------------- | --------------------------- | ------------------------------------ |
-| `order_id`          | bigint        | NOT NULL | Unique order identifier   | 1, 2, 3...                  | Primary key, auto-increment          |
-| `customer_id`       | bigint        | NOT NULL | Reference to customer     | 15991, 29325                | Foreign key → customers.customer_id  |
-| `order_date`        | timestamp     | NOT NULL | Order creation date/time  | '2025-08-14 00:00:00'       | Must be ≤ current date               |
-| `date_id`           | integer       | YES      | Date dimension key        | 20250814                    | Format: YYYYMMDD                     |
-| `channel`           | varchar(50)   | YES      | Order acquisition channel | 'web', 'mobile', 'whatsapp' | See channel values below             |
-| `payment_method_id` | integer       | YES      | Payment method reference  | 1, 2, 3                     | Foreign key → dim_payment_methods.id |
-| `order_district_id` | integer       | YES      | Geographic district       | 1-50                        | Foreign key → dim_districts.id       |
-| `item_amount`       | decimal(12,2) | YES      | Total order value         | 592.06, 1250.00             | Calculated from order_items          |
-
-**Valid Channel Values**:
-
-- `web` - Website orders
-- `mobile` - Mobile app orders
-- `whatsapp` - WhatsApp orders
-- `telegram` - Telegram orders
-- `instagram` - Instagram orders
-- `call_center` - Phone orders
-
-**Record Count**: ~105,000 orders  
-**Date Range**: 2024-01-01 to 2025-12-31  
-**Primary Key**: order_id  
-**Indexes**: order_date, customer_id, channel
+**Огранич��ния:**
+- Email должен быть уникальным
+- Status может быть только: 'active', 'inactive', 'suspended'
+- Registration_date не может быть в будущем
 
 ---
 
-### 🛒 `order_items` - Order Line Items
+### 2. Таблица `products` - Товары
 
-Contains individual products within each order (order line items).
+Каталог товаров компании.
 
-| Column           | Data Type     | Nullable | Description                 | Example Values | Business Rules                     |
-| ---------------- | ------------- | -------- | --------------------------- | -------------- | ---------------------------------- |
-| `order_id`       | bigint        | NOT NULL | Reference to parent order   | 1, 2, 3...     | Foreign key → orders.order_id      |
-| `product_id`     | bigint        | NOT NULL | Product identifier          | 101, 102, 103  | Foreign key → products.product_id  |
-| `quantity`       | integer       | NOT NULL | Number of units ordered     | 1, 2, 5        | Must be > 0, typically ≤ 100       |
-| `price_per_item` | decimal(10,2) | NOT NULL | Unit price at time of order | 25.99, 150.00  | Must be > 0, stored price snapshot |
+| Столбец | Тип данных | Обязательный | Ключ | Описание | Возможные значения |
+|---------|------------|--------------|------|----------|-------------------|
+| `id` | SERIAL | ✅ | PK | Уникальный идентификатор товара | Автоинкремент от 1 |
+| `name` | VARCHAR(255) | ✅ | - | Название товара | Любая строка до 255 символов |
+| `description` | TEXT | ❌ | - | Подробное описание товара | Текст любой длины |
+| `category` | VARCHAR(100) | ❌ | - | Категория товара | Электроника, Одежда, Книги, etc. |
+| `supplier_id` | INTEGER | ❌ | FK | Ссылка на поставщика | ID из таблицы suppliers |
+| `purchase_price` | DECIMAL(10,2) | ✅ | - | Закупочная цена | Положительное число, 2 знака после запятой |
+| `selling_price` | DECIMAL(10,2) | ✅ | - | Продажная цена | Положительное число, 2 знака после запятой |
+| `stock_quantity` | INTEGER | ✅ | - | Количество на складе | Неотрицательное целое число |
+| `reorder_level` | INTEGER | ✅ | - | Уровень перезаказа | Положительное число |
+| `is_active` | BOOLEAN | ✅ | - | Активность товара | `true` - активен, `false` - архивирован |
+| `created_at` | TIMESTAMP | ✅ | - | Дата создания записи | YYYY-MM-DD HH:MM:SS |
+| `updated_at` | TIMESTAMP | ✅ | - | Дата последнего обновления | YYYY-MM-DD HH:MM:SS |
 
-**Record Count**: ~160,591 line items  
-**Average Items per Order**: 1.53  
-**Primary Key**: (order_id, product_id)  
-**Indexes**: order_id, product_id
+**Индексы:**
+- `idx_products_category` - индекс по категории
+- `idx_products_supplier` - индекс по поставщику
+- `idx_products_active` - индекс по активности
+- `idx_products_stock` - индекс по количеству на складе
+- `idx_products_price` - индекс по продажной цене
+- `idx_products_name` - полнотекстовый индекс по названию
 
-**Business Logic**:
-
-- Total line value = quantity × price_per_item
-- Order total = SUM(line values) for all items in order
-- Prices are frozen at order time (historical snapshot)
-
----
-
-### 👥 `customers` - Customer Master Data
-
-Customer information and demographics.
-
-| Column        | Data Type   | Nullable | Description                | Example Values | Business Rules                 |
-| ------------- | ----------- | -------- | -------------------------- | -------------- | ------------------------------ |
-| `customer_id` | bigint      | NOT NULL | Unique customer identifier | 15991, 29325   | Primary key, auto-increment    |
-| `gender`      | varchar(10) | YES      | Customer gender            | 'M', 'F', NULL | Optional demographic field     |
-| `age`         | bigint      | YES      | Customer age               | 25, 45, 67     | Typical range: 18-80           |
-| `region_id`   | integer     | YES      | Customer's region          | 1, 2, 3        | Foreign key → dim_regions.id   |
-| `district_id` | integer     | YES      | Customer's district        | 1-50           | Foreign key → dim_districts.id |
-
-**Record Count**: ~34,333 customers  
-**Demographics**:
-
-- Age range: 18-75 years
-- Gender distribution: ~50/50 M/F
-- Geographic spread: All major regions
-
-**Primary Key**: customer_id  
-**Indexes**: region_id, district_id, age
+**Ограничения:**
+- Selling_price должна быть больше 0
+- Purchase_price должна быть больше 0
+- Stock_quantity не может быть отрицательным
+- Reorder_level должен быть положительным
 
 ---
 
-### 💳 `payments` - Payment Transactions
+### 3. Таблица `orders` - Заказы
 
-Payment processing records for orders.
+Информация о заказах клиентов.
 
-| Column              | Data Type     | Nullable | Description              | Example Values              | Business Rules                       |
-| ------------------- | ------------- | -------- | ------------------------ | --------------------------- | ------------------------------------ |
-| `order_id`          | bigint        | NOT NULL | Reference to order       | 1, 2, 3...                  | Foreign key → orders.order_id        |
-| `attempt`           | integer       | NOT NULL | Payment attempt number   | 1, 2, 3                     | Retry sequence for failed payments   |
-| `status_raw`        | varchar(20)   | NOT NULL | Payment status           | 'paid', 'failed', 'pending' | See status values below              |
-| `paid_amount`       | decimal(12,2) | YES      | Successfully paid amount | 592.06, 0.00                | ≤ order total amount                 |
-| `payment_date`      | timestamp     | YES      | Payment processing date  | '2025-08-14 10:30:00'       | When payment processed               |
-| `payment_method_id` | integer       | YES      | Payment method used      | 1, 2, 3                     | Foreign key → dim_payment_methods.id |
+| Столбец | Тип данных | Обязательный | Ключ | Описание | Возможные значения |
+|---------|------------|--------------|------|----------|-------------------|
+| `id` | SERIAL | ✅ | PK | Уникальный идентификатор заказа | Автоинкремент от 1 |
+| `customer_id` | INTEGER | ✅ | FK | Ссылка на клиента | ID из таблицы customers |
+| `order_date` | DATE | ✅ | - | Дата размещения заказа | YYYY-MM-DD |
+| `status` | VARCHAR(20) | ✅ | - | Статус заказа | `pending`, `processing`, `shipped`, `delivered`, `cancelled`, `returned` |
+| `payment_status` | VARCHAR(20) | ✅ | - | Статус оплаты | `pending`, `paid`, `failed`, `refunded` |
+| `shipping_address` | TEXT | ✅ | - | Адрес доставки | Полный адрес доставки |
+| `created_at` | TIMESTAMP | ✅ | - | Дата создания записи | YYYY-MM-DD HH:MM:SS |
+| `updated_at` | TIMESTAMP | ✅ | - | Дата последнего обновления | YYYY-MM-DD HH:MM:SS |
 
-**Valid Status Values**:
+**Индексы:**
+- `idx_orders_customer` - индекс по клиенту
+- `idx_orders_date` - индекс по дате заказа
+- `idx_orders_status` - индекс по статусу заказа
+- `idx_orders_payment_status` - индекс по статусу оплаты
 
-- `paid` - Payment successful
-- `failed` - Payment failed/declined
-- `pending` - Payment in process
+**Ограничения:**
+- Customer_id должен существовать в таблице customers
+- Order_date не может быть в будущем
+- Status может быть только из предопределенного списка
+- Payment_status может быть только из предопределенного списка
 
-**Record Count**: ~113,891 payment attempts  
-**Success Rate**: ~85% of payment attempts succeed  
-**Primary Key**: (order_id, attempt)  
-**Indexes**: status_raw, payment_date
-
----
-
-## 🎯 Dimension Tables
-
-### 🗺️ `dim_regions` - Geographic Regions
-
-Regional geographic information.
-
-| Column        | Data Type    | Nullable | Description         | Example Values             |
-| ------------- | ------------ | -------- | ------------------- | -------------------------- |
-| `id`          | integer      | NOT NULL | Region identifier   | 1, 2, 3...                 |
-| `region_name` | varchar(100) | NOT NULL | Region name         | 'Москва', 'СПб', 'Регионы' |
-| `region_code` | varchar(10)  | YES      | Region abbreviation | 'MSK', 'SPB', 'REG'        |
-
-### 🏙️ `dim_districts` - Geographic Districts
-
-District-level geographic information.
-
-| Column          | Data Type    | Nullable | Description         | Example Values               |
-| --------------- | ------------ | -------- | ------------------- | ---------------------------- |
-| `id`            | integer      | NOT NULL | District identifier | 1, 2, 3...                   |
-| `district_name` | varchar(100) | NOT NULL | District name       | 'Центральный', 'Северный'    |
-| `region_id`     | integer      | YES      | Parent region       | Foreign key → dim_regions.id |
-
-### 💰 `dim_payment_methods` - Payment Methods
-
-Payment method lookup table.
-
-| Column        | Data Type   | Nullable | Description         | Example Values                |
-| ------------- | ----------- | -------- | ------------------- | ----------------------------- |
-| `id`          | integer     | NOT NULL | Payment method ID   | 1, 2, 3...                    |
-| `method_name` | varchar(50) | NOT NULL | Payment method name | 'Карта', 'Банковский перевод' |
-| `method_type` | varchar(20) | YES      | Payment category    | 'card', 'transfer', 'wallet'  |
-| `is_active`   | boolean     | NOT NULL | Method availability | true, false                   |
-
-### 📅 `dim_dates` - Date Dimension
-
-Date dimension for time-based analysis.
-
-| Column        | Data Type   | Nullable | Description         | Example Values           |
-| ------------- | ----------- | -------- | ------------------- | ------------------------ |
-| `date_id`     | integer     | NOT NULL | Date key (YYYYMMDD) | 20241201, 20241202       |
-| `full_date`   | date        | NOT NULL | Actual date         | '2024-12-01'             |
-| `year`        | integer     | NOT NULL | Year                | 2024, 2025               |
-| `month`       | integer     | NOT NULL | Month (1-12)        | 1, 2, ..., 12            |
-| `day`         | integer     | NOT NULL | Day of month        | 1, 2, ..., 31            |
-| `day_of_week` | integer     | NOT NULL | Day of week (0=Sun) | 0, 1, 2, ..., 6          |
-| `day_name`    | varchar(20) | NOT NULL | Day name            | 'Понедельник', 'Вторник' |
-| `is_weekend`  | boolean     | NOT NULL | Weekend flag        | true, false              |
-| `is_holiday`  | boolean     | NOT NULL | Holiday flag        | true, false              |
+**Связи:**
+- `orders.customer_id` → `customers.id` (FOREIGN KEY)
 
 ---
 
-## 📊 Data Types Reference
+### 4. Таблица `order_items` - Позиции заказов
 
-### PostgreSQL Data Types Used
+Детализация товаров в каждом заказе.
 
-| Type           | Description     | Range/Length                                            | Usage                       |
-| -------------- | --------------- | ------------------------------------------------------- | --------------------------- |
-| `bigint`       | 8-byte integer  | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 | IDs, large counts           |
-| `integer`      | 4-byte integer  | -2,147,483,648 to 2,147,483,647                         | Standard numbers            |
-| `decimal(p,s)` | Exact numeric   | Precision p, scale s                                    | Money, precise calculations |
-| `varchar(n)`   | Variable string | Up to n characters                                      | Text fields                 |
-| `timestamp`    | Date + time     | 4713 BC to 294276 AD                                    | Date/time values            |
-| `date`         | Date only       | 4713 BC to 5874897 AD                                   | Date values                 |
-| `boolean`      | True/false      | true, false, null                                       | Binary flags                |
+| Столбец | Тип данных | Обязательный | Ключ | Описание | Возможные значения |
+|---------|------------|--------------|------|----------|-------------------|
+| `id` | SERIAL | ✅ | PK | Уникальный идентификатор позиции | Автоинкремент от 1 |
+| `order_id` | INTEGER | ✅ | FK | Ссылка на заказ | ID из таблицы orders |
+| `product_id` | INTEGER | ✅ | FK | Ссылка на товар | ID из таблицы products |
+| `quantity` | INTEGER | ✅ | - | Количество товара | Положительное целое число |
+| `unit_price` | DECIMAL(10,2) | ✅ | - | Цена за единицу на момент заказа | Положительное число |
+| `created_at` | TIMESTAMP | ✅ | - | Дата создания записи | YYYY-MM-DD HH:MM:SS |
 
-### Common Precision & Scale
+**Индексы:**
+- `idx_order_items_order` - индекс по заказу
+- `idx_order_items_product` - индекс по товару
+- `idx_order_items_composite` - составной индекс (order_id, product_id)
 
-| Field Type | Format        | Example       | Notes                       |
-| ---------- | ------------- | ------------- | --------------------------- |
-| Currency   | decimal(12,2) | 1234567890.99 | Up to 10 digits + 2 decimal |
-| Percentage | decimal(5,2)  | 99.99         | Up to 3 digits + 2 decimal  |
-| Quantity   | integer       | 999           | Whole numbers only          |
-| Rate       | decimal(10,4) | 0.1234        | High precision rates        |
+**Ограничения:**
+- Order_id должен существовать в таблице orders
+- Product_id должен существовать в таблице products
+- Quantity должно быть больше 0
+- Unit_price должна быть больше 0
+- Уникальная комбинация (order_id, product_id)
 
----
-
-## ⚖️ Business Rules & Constraints
-
-### Data Integrity Rules
-
-1. **Referential Integrity**
-
-   - All foreign keys must reference existing records
-   - Orphaned records are removed during data cleaning
-   - Cascade deletes not allowed (data preservation)
-
-2. **Business Logic Constraints**
-
-   - Order dates cannot be in the future
-   - Quantities must be positive integers
-   - Prices must be positive decimals
-   - Payment amounts cannot exceed order totals
-
-3. **Data Quality Standards**
-   - No duplicate primary keys allowed
-   - Critical fields (IDs, amounts) cannot be NULL
-   - Date formats must be consistent (ISO 8601)
-   - Text fields use UTF-8 encoding
-
-### Calculation Rules
-
-1. **Revenue Calculations**
-
-   ```sql
-   -- Gross Revenue = Sum of all order line items
-   Gross Revenue = SUM(quantity * price_per_item) FROM order_items
-
-   -- Net Paid Revenue = Only confirmed payments
-   Net Paid Revenue = SUM(paid_amount) WHERE status_raw = 'paid'
-   ```
-
-2. **KPI Formulas**
-
-   ```sql
-   -- Average Order Value
-   AOV = SUM(order_total) / COUNT(DISTINCT order_id)
-
-   -- Payment Conversion
-   Conversion = COUNT(paid_orders) * 100 / COUNT(total_orders)
-
-   -- Units per Order
-   UPO = SUM(quantity) / COUNT(DISTINCT order_id)
-   ```
-
-3. **Deduplication Logic**
-   - Orders: Keep latest by order_date
-   - Payments: Keep successful payment, then latest attempt
-   - Customers: Keep record with most complete data
+**Связи:**
+- `order_items.order_id` → `orders.id` (FOREIGN KEY)
+- `order_items.product_id` → `products.id` (FOREIGN KEY)
 
 ---
 
-## 🔧 Data Maintenance
+### 5. Таблица `suppliers` - Поставщики
 
-### Regular Operations
+Информация о поставщиках товаров.
 
-1. **Daily Tasks**
+| Столбец | Тип данных | Обязательный | Ключ | Описание | Возможные значения |
+|---------|------------|--------------|------|----------|-------------------|
+| `id` | SERIAL | ✅ | PK | Уникальный идентификатор поставщика | Автоинкремент от 1 |
+| `name` | VARCHAR(255) | ✅ | - | Название поставщика | Любая строка до 255 символов |
+| `contact_person` | VARCHAR(255) | ❌ | - | Контактное лицо | ФИО контактного лица |
+| `email` | VARCHAR(255) | ❌ | - | Email для связи | Валидный email формат |
+| `phone` | VARCHAR(20) | ❌ | - | Телефонный номер | +7XXXXXXXXXX или 8XXXXXXXXXX |
+| `address` | TEXT | ❌ | - | Адрес поставщика | Полный адрес |
+| `rating` | DECIMAL(3,2) | ❌ | - | Рейтинг поставщика | От 0.00 до 5.00 |
+| `status` | VARCHAR(20) | ✅ | - | Статус сотрудничества | `active`, `inactive`, `blacklisted` |
+| `created_at` | TIMESTAMP | ✅ | - | Дата создания записи | YYYY-MM-DD HH:MM:SS |
+| `updated_at` | TIMESTAMP | ✅ | - | Дата последнего обновления | YYYY-MM-DD HH:MM:SS |
 
-   - Data quality validation
-   - Referential integrity checks
-   - New record validation
+**Индексы:**
+- `idx_suppliers_status` - индекс по статусу
+- `idx_suppliers_rating` - индекс по рейтингу
 
-2. **Weekly Tasks**
-
-   - Duplicate detection and removal
-   - Performance optimization
-   - Index maintenance
-
-3. **Monthly Tasks**
-   - Full data cleaning pipeline
-   - Historical data archival
-   - Schema evolution reviews
-
-### Quality Thresholds
-
-| Metric                      | Threshold | Action            |
-| --------------------------- | --------- | ----------------- |
-| Missing customer references | < 1%      | Monitor           |
-| Failed payments             | < 20%     | Investigate       |
-| Duplicate orders            | 0%        | Immediate cleanup |
-| Data completeness           | > 95%     | Target standard   |
+**Ограничения:**
+- Rating должен быть между 0.00 и 5.00
+- Status может быть только: 'active', 'inactive', 'blacklisted'
 
 ---
 
-## 📞 Support Information
+### 6. Таблица `inventory_movements` - Движения товаров
 
-**Data Dictionary Version**: 1.0  
-**Last Updated**: December 2024  
-**Maintained By**: DataBoard Analytics Team  
-**Contact**: See README.md for support information
+Журнал движений товаров на складе.
 
-For schema changes or data questions, refer to:
+| Столбец | Тип данных | Обязательный | Ключ | Описание | Возможные значения |
+|---------|------------|--------------|------|----------|-------------------|
+| `id` | SERIAL | ✅ | PK | Уникальный идентификатор движения | Автоинкремент от 1 |
+| `product_id` | INTEGER | ✅ | FK | Ссылка на товар | ID из таблицы products |
+| `movement_type` | VARCHAR(20) | ✅ | - | Тип движения | `in` (поступление), `out` (расход), `adjustment` (корректировка) |
+| `quantity` | INTEGER | ✅ | - | Количество (+ или -) | Целое число, может быть отрицательным |
+| `reference_id` | INTEGER | ❌ | - | Ссылка на связанную операцию | ID з��каза, поставки или корректировки |
+| `reference_type` | VARCHAR(20) | ❌ | - | Тип связанной операции | `order`, `purchase`, `adjustment` |
+| `notes` | TEXT | ❌ | - | Комментарий к движению | Любой текст |
+| `created_at` | TIMESTAMP | ✅ | - | Дата создания записи | YYYY-MM-DD HH:MM:SS |
 
-- `sql/` directory for query examples
-- `scripts/data_cleaning.py` for validation logic
-- `docs/KPI_FORMULAS.md` for calculation details
+**Индексы:**
+- `idx_inventory_type` - индекс по типу движения
+- `idx_inventory_date` - индекс по дате создания
+- `idx_inventory_product` - индекс по товару
+
+**Ограничения:**
+- Product_id должен существовать в таблице products
+- Movement_type может быть только: 'in', 'out', 'adjustment'
+- Quantity не может быть 0
+
+---
+
+### 7. Таблица `data_audit_log` - Журнал аудита
+
+Журнал изменений данных для отслеживания операций.
+
+| Столбец | Тип данных | Обязательный | Ключ | Описание | Возможные значения |
+|---------|------------|--------------|------|----------|-------------------|
+| `id` | SERIAL | ✅ | PK | Уникальный идентификатор записи | Автоинкремент от 1 |
+| `table_name` | VARCHAR(100) | ✅ | - | Название таблицы | Название таблицы БД |
+| `operation` | VARCHAR(20) | ✅ | - | Тип операции | `INSERT`, `UPDATE`, `DELETE` |
+| `record_id` | INTEGER | ✅ | - | ID измененной записи | ID записи в целевой таблице |
+| `old_values` | JSONB | ❌ | - | Старые значения (для UPDATE/DELETE) | JSON объект |
+| `new_values` | JSONB | ❌ | - | Новые значения (для INSERT/UPDATE) | JSON объект |
+| `user_id` | INTEGER | ❌ | - | ID пользователя, сделавшего изменение | ID пользователя или NULL для системы |
+| `created_at` | TIMESTAMP | ✅ | - | Дата изменения | YYYY-MM-DD HH:MM:SS |
+
+**Индексы:**
+- `idx_audit_date` - индекс по дате создания
+- `idx_audit_user` - индекс по пользователю
+- `idx_audit_table` - индекс по таблице
+- `idx_audit_operation` - индекс по типу операции
+
+---
+
+## 📊 Справочные значения
+
+### Статусы клиентов (`customers.status`)
+- `active` - Активный клиент, может делать заказы
+- `inactive` - Неактивный клиент, временно не работает
+- `suspended` - Заблокированный клиент, нарушения условий
+
+### Статусы заказов (`orders.status`)
+- `pending` - Ожидает обработки
+- `processing` - В обработке
+- `shipped` - Отправлен
+- `delivered` - Доставлен
+- `cancelled` - Отменен
+- `returned` - Возвращен
+
+### Статусы оплаты (`orders.payment_status`)
+- `pending` - Ожидает оплаты
+- `paid` - Оплачен
+- `failed` - Ошибка оплаты
+- `refunded` - Возвращен
+
+### Категории товаров (`products.category`)
+- `Электроника` - Электронные устройства
+- `Одежда` - Предметы одежды
+- `Книги` - Печатные и электронные книги
+- `Спорт` - Спортивные товары
+- `Дом и сад` - Товары для дома и сада
+- `Игрушки` - Детские игрушки
+- `Красота` - Косметика и средства ухода
+
+### Отрасли (`customers.industry`)
+- `IT` - Информационные технологии
+- `Производство` - Промышленное производство
+- `Торговля` - Розничная и оптовая торговля
+- `Услуги` - Сфера услуг
+- `Строительство` - Строительная отрасль
+- `Образова��ие` - Образовательные учреждения
+- `Медицина` - Медицинские услуги
+
+## 🔗 Связи между таблицами
+
+```
+customers (1) ←→ (N) orders
+orders (1) ←→ (N) order_items
+products (1) ←→ (N) order_items
+suppliers (1) ←→ (N) products
+products (1) ←→ (N) inventory_movements
+```
+
+### Основные связи:
+1. **Клиент → Заказы**: Один клиент может иметь много заказов
+2. **Заказ → Позиции**: Один заказ содержит много позиций товаров
+3. **Товар → Позиции**: Один товар может быть в многих заказах
+4. **Поставщик → Товары**: Один поставщик может поставлять много товаров
+5. **Товар → Движения**: По одному товару может быть много движений
+
+## 📈 Расчетные поля и метрики
+
+### Общая сумма заказа
+```sql
+SELECT SUM(quantity * unit_price) as total_amount
+FROM order_items 
+WHERE order_id = ?
+```
+
+### Статус запасов товара
+```sql
+CASE 
+    WHEN stock_quantity <= reorder_level THEN 'low_stock'
+    WHEN stock_quantity = 0 THEN 'out_of_stock'
+    ELSE 'in_stock'
+END as stock_status
+```
+
+### Возраст клиента (дни)
+```sql
+DATE_PART('day', CURRENT_DATE - registration_date) as customer_age_days
+```
+
+### Рентабельность товара
+```sql
+(selling_price - purchase_price) / purchase_price * 100 as profit_margin_percent
+```
+
+## 🛡 Ограничения целостности
+
+### Первичные ключи
+- Все таблицы имеют автоинкрементальный первичный ключ `id`
+
+### Внешние ключи
+- `orders.customer_id` → `customers.id`
+- `order_items.order_id` → `orders.id`
+- `order_items.product_id` → `products.id`
+- `products.supplier_id` → `suppliers.id`
+- `inventory_movements.product_id` → `products.id`
+
+### Проверочные ограничения
+- Цены должны быть положительными
+- Количества не могут быть отрицательными (кроме движений)
+- Даты не могут быть в будущем
+- Email должен соответствовать формату
+- Статусы должны быть из предопределенного списка
+
+## 📝 Примечания по использованию
+
+1. **Временные мет��и**: Все таблицы имеют поля `created_at` и `updated_at` для отслеживания изменений
+2. **Мягкое удаление**: Товары архивируются через поле `is_active` вместо физического удаления
+3. **Аудит**: Критические изменения логируются в `data_audit_log`
+4. **Производительность**: Все часто используемые поля проиндексированы
+5. **Масштабируемость**: Структура поддерживает миллионы записей при правильном использовании индексов
+
+## 🔄 Версионность
+
+- **Версия словаря**: 1.0
+- **Дата создания**: 2024-08-22
+- **Последнее обновление**: 2024-08-22
+- **Ответственный**: DataBoard Team
