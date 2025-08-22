@@ -65,10 +65,10 @@ class DatabaseService {
   private requestQueue: RequestQueue[] = []
   private isProcessingQueue = false
   private lastRequestTime = 0
-  private readonly MIN_REQUEST_INTERVAL = 200 // Minimum 200ms between requests
-  private readonly MAX_RETRIES = 3
-  private readonly RETRY_DELAYS = [1000, 2000, 4000] // Exponential backoff
-  private readonly DEFAULT_CACHE_TTL = 30000 // 30 seconds
+  private readonly MIN_REQUEST_INTERVAL = 1000 // Minimum 1 second between requests
+  private readonly MAX_RETRIES = 2
+  private readonly RETRY_DELAYS = [2000, 5000] // Longer delays
+  private readonly DEFAULT_CACHE_TTL = 60000 // 60 seconds cache
 
   constructor() {
     // Use relative URLs for API calls - Vite proxy will handle routing to backend
