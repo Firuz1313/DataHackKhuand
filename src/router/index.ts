@@ -55,6 +55,12 @@ const router = createRouter({
       meta: { title: 'Аналитика' },
     },
     {
+      path: '/advanced-analytics',
+      name: 'advanced-analytics',
+      component: () => import('@/views/AdvancedAnalyticsView.vue'),
+      meta: { title: 'Продвинутая аналитика' },
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue'),
