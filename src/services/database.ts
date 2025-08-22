@@ -50,7 +50,8 @@ class DatabaseService {
   private baseUrl: string
   
   constructor() {
-    this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'
+    // Use relative URLs for API calls - Vite proxy will handle routing to backend
+    this.baseUrl = '/api'
   }
   
   public static getInstance(): DatabaseService {
@@ -74,7 +75,7 @@ class DatabaseService {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Ошибка сети' }))
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }))
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
 
@@ -165,7 +166,7 @@ class DatabaseService {
   // Health check for the API
   async checkApiHealth(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl.replace('/api', '')}/health`)
+      const response = await fetch('/health')
       return response.ok
     } catch (error) {
       console.error('API health check failed:', error)
