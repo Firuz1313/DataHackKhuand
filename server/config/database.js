@@ -1,24 +1,16 @@
 const { Pool } = require('pg');
-const SSH2Promise = require('ssh2-promise');
+const tunnel = require('tunnel-ssh');
 
 class DatabaseManager {
   constructor() {
     this.pool = null;
-    this.sshConnection = null;
+    this.sshTunnel = null;
     this.isConnected = false;
   }
 
   async connectToDatabase() {
     try {
-      console.log('🔌 Подключение к базе данных через SSH...');
-
-      // SSH Configuration
-      const sshConfig = {
-        host: process.env.SSH_HOST || '103.246.146.132',
-        port: parseInt(process.env.SSH_PORT) || 22,
-        username: process.env.SSH_USER || 'user_db',
-        password: process.env.SSH_PASSWORD || 'psql14182025'
-      };
+      console.log('🔌 Подключение к базе данных...');
 
       // Database Configuration
       const dbConfig = {
@@ -29,16 +21,20 @@ class DatabaseManager {
         password: process.env.DB_PASSWORD || 'psql14182025',
         max: 20,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 5000,
+        connectionTimeoutMillis: 10000,
       };
 
       try {
-        // Try direct connection first (in case SSH is not needed or already configured)
+        // Try direct connection first
         console.log('🔗 Попытка прямого подключения к PostgreSQL...');
         this.pool = new Pool(dbConfig);
         
-        // Test connection
-        const testClient = await this.pool.connect();
+        // Test connection with timeout
+        const testClient = await Promise.race([
+          this.pool.connect(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), 5000))
+        ]);
+        
         await testClient.query('SELECT 1');
         testClient.release();
         
@@ -47,28 +43,51 @@ class DatabaseManager {
         
       } catch (directError) {
         console.log('⚠️ Прямое подключение не удалось, попытка через SSH туннель...');
+        console.log('Ошибка прямого подключения:', directError.message);
         
-        // If direct connection fails, try SSH tunnel
-        this.sshConnection = new SSH2Promise(sshConfig);
-        await this.sshConnection.connect();
+        // Close the failed pool
+        if (this.pool) {
+          await this.pool.end();
+          this.pool = null;
+        }
         
-        console.log('🔐 SSH с��единение установлено');
+        // SSH Tunnel Configuration
+        const sshConfig = {
+          username: process.env.SSH_USER || 'user_db',
+          password: process.env.SSH_PASSWORD || 'psql14182025',
+          host: process.env.SSH_HOST || '103.246.146.132',
+          port: parseInt(process.env.SSH_PORT) || 22,
+          dstHost: dbConfig.host,
+          dstPort: dbConfig.port,
+          localHost: '127.0.0.1',
+          localPort: 5433,
+          keepAlive: true
+        };
         
-        // Create tunnel for database connection
-        const tunnel = await this.sshConnection.addTunnel({
-          remoteAddr: dbConfig.host,
-          remotePort: dbConfig.port,
-          localPort: 5433 // Use different local port to avoid conflicts
+        console.log('🔐 Создание SSH туннеля...');
+        
+        // Create SSH tunnel
+        this.sshTunnel = await new Promise((resolve, reject) => {
+          const server = tunnel(sshConfig, (error, server) => {
+            if (error) {
+              console.error('❌ Ошибка SSH туннеля:', error);
+              reject(error);
+            } else {
+              console.log('✅ SSH туннель создан на порту 5433');
+              resolve(server);
+            }
+          });
         });
-        
-        console.log('🚇 SSH туннель создан на порту 5433');
         
         // Connect to database through tunnel
         const tunnelDbConfig = {
           ...dbConfig,
-          host: 'localhost',
+          host: '127.0.0.1',
           port: 5433
         };
+        
+        // Wait a bit for tunnel to be ready
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         this.pool = new Pool(tunnelDbConfig);
         
@@ -91,6 +110,10 @@ class DatabaseManager {
         console.log('🔗 Новое подключение к базе данных');
       });
 
+      this.pool.on('remove', () => {
+        console.log('🔌 Подключение удалено из пула');
+      });
+
       return this.pool;
       
     } catch (error) {
@@ -110,10 +133,11 @@ class DatabaseManager {
       const result = await this.pool.query(text, params);
       const duration = Date.now() - start;
       
-      console.log(`📊 SQL запрос выполнен за ${duration}ms:`, text.substring(0, 100));
+      console.log(`📊 SQL запрос выполнен за ${duration}ms: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
       return result;
     } catch (error) {
-      console.error('❌ Ошибка выполнения запроса:', error);
+      console.error('❌ Ошибка выполнения запроса:', error.message);
+      console.error('📝 Запрос:', text);
       throw error;
     }
   }
@@ -130,11 +154,13 @@ class DatabaseManager {
       if (this.pool) {
         await this.pool.end();
         console.log('🔌 Пул подключений к базе данных закрыт');
+        this.pool = null;
       }
       
-      if (this.sshConnection) {
-        await this.sshConnection.close();
-        console.log('🔐 SSH соеди��ение закрыто');
+      if (this.sshTunnel) {
+        this.sshTunnel.close();
+        console.log('🔐 SSH туннель закрыт');
+        this.sshTunnel = null;
       }
       
       this.isConnected = false;
@@ -147,7 +173,7 @@ class DatabaseManager {
     return {
       isConnected: this.isConnected,
       poolConnected: !!this.pool,
-      sshConnected: !!this.sshConnection
+      sshConnected: !!this.sshTunnel
     };
   }
 }
