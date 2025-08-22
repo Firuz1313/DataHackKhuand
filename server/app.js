@@ -9,6 +9,7 @@ const databaseRoutes = require('./routes/database')
 const migrationRoutes = require('./routes/migrations')
 const customTablesRoutes = require('./routes/customTables')
 const businessTablesRoutes = require('./routes/businessTables')
+const advancedAnalyticsRoutes = require('./routes/advancedAnalytics')
 const { connectToDatabase, closeDatabaseConnection } = require('./config/database')
 const migrationManager = require('./config/migrations')
 
@@ -66,6 +67,7 @@ app.use('/api/database', databaseRoutes)
 app.use('/api/migrations', migrationRoutes)
 app.use('/api/custom-tables', customTablesRoutes)
 app.use('/api/business-tables', businessTablesRoutes)
+app.use('/api/advanced-analytics', advancedAnalyticsRoutes)
 
 // 404 handler
 app.use('*', (req, res) => {
