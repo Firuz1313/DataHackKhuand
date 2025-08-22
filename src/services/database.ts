@@ -177,6 +177,131 @@ class DatabaseService {
       return false
     }
   }
+
+  // Get table data with pagination
+  async getTableData(
+    tableName: string,
+    options: {
+      page?: number
+      limit?: number
+      search?: string
+      sort?: string
+      order?: 'ASC' | 'DESC'
+    } = {}
+  ): Promise<{
+    rows: any[]
+    pagination: {
+      page: number
+      limit: number
+      total: number
+      pages: number
+      hasNext: boolean
+      hasPrev: boolean
+    }
+  }> {
+    try {
+      const params = new URLSearchParams()
+      if (options.page) params.append('page', options.page.toString())
+      if (options.limit) params.append('limit', options.limit.toString())
+      if (options.search) params.append('search', options.search)
+      if (options.sort) params.append('sort', options.sort)
+      if (options.order) params.append('order', options.order)
+
+      const queryString = params.toString()
+      const endpoint = `/database/tables/${tableName}/data${queryString ? '?' + queryString : ''}`
+
+      return await this.apiCall<{
+        rows: any[]
+        pagination: {
+          page: number
+          limit: number
+          total: number
+          pages: number
+          hasNext: boolean
+          hasPrev: boolean
+        }
+      }>(endpoint)
+    } catch (error) {
+      console.error('Failed to get table data:', error)
+      throw error
+    }
+  }
+
+  // Get performance metrics
+  async getPerformanceMetrics(): Promise<{
+    cpu: { current: number; average: number; max: number }
+    memory: { current: number; average: number; available: string }
+    io: { current: number; read: string; write: string }
+    connections: { active: number; max: number; idle: number }
+  }> {
+    try {
+      return await this.apiCall<{
+        cpu: { current: number; average: number; max: number }
+        memory: { current: number; average: number; available: string }
+        io: { current: number; read: string; write: string }
+        connections: { active: number; max: number; idle: number }
+      }>('/database/performance')
+    } catch (error) {
+      console.error('Failed to get performance metrics:', error)
+      throw error
+    }
+  }
+
+  // Get real-time monitoring stats
+  async getRealTimeStats(): Promise<{
+    activeConnections: number
+    queriesPerMinute: number
+    avgResponseTime: number
+    cacheHitRate: number
+    cacheSize: string
+    transactionsPerSecond: number
+    locksCount: number
+    deadlocks: number
+    timestamp: string
+  }> {
+    try {
+      return await this.apiCall<{
+        activeConnections: number
+        queriesPerMinute: number
+        avgResponseTime: number
+        cacheHitRate: number
+        cacheSize: string
+        transactionsPerSecond: number
+        locksCount: number
+        deadlocks: number
+        timestamp: string
+      }>('/database/monitoring/realtime')
+    } catch (error) {
+      console.error('Failed to get real-time stats:', error)
+      throw error
+    }
+  }
+
+  // Get weekly activity analytics
+  async getWeeklyActivity(): Promise<{
+    weeklyActivity: Array<{ day: string; queries: number }>
+    summary: {
+      totalQueries: number
+      successfulQueries: number
+      errorQueries: number
+      successRate: number
+    }
+  }> {
+    try {
+      return await this.apiCall<{
+        weeklyActivity: Array<{ day: string; queries: number }>
+        summary: {
+          totalQueries: number
+          successfulQueries: number
+          errorQueries: number
+          successRate: number
+        }
+      }>('/database/analytics/weekly')
+    } catch (error) {
+      console.error('Failed to get weekly activity:', error)
+      throw error
+    }
+  }
 }
 
 export const dbService = DatabaseService.getInstance()
