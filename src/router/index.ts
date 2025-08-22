@@ -61,6 +61,12 @@ const router = createRouter({
       meta: { title: 'Качество данных' }
     },
     {
+      path: '/kpi',
+      name: 'kpi',
+      component: () => import('@/views/KPIDashboardView.vue'),
+      meta: { title: 'KPI Дашборд' }
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue'),
