@@ -332,31 +332,52 @@
               </div>
 
               <div v-if="loadingIndexes" class="p-6 text-center">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                <div
+                  class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"
+                ></div>
                 <p class="text-gray-600">Загрузка индексов...</p>
               </div>
 
               <div v-else-if="indexesError" class="p-6 text-center text-error-600">
                 <p class="mb-2">{{ indexesError }}</p>
-                <button @click="refreshIndexes" class="text-sm text-primary-600 hover:text-primary-700">Попробовать снова</button>
+                <button
+                  @click="refreshIndexes"
+                  class="text-sm text-primary-600 hover:text-primary-700"
+                >
+                  Попробовать снова
+                </button>
               </div>
 
               <div v-else-if="!indexes.length" class="p-6 text-center text-gray-500">
-                <svg class="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                <svg
+                  class="w-12 h-12 text-gray-300 mx-auto mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
                 </svg>
                 <p class="text-sm">Индексы не найдены</p>
               </div>
 
               <div v-else class="p-6 space-y-4">
-                <div v-for="index in indexes" :key="index.index_name" class="border border-gray-200 rounded-lg p-4">
+                <div
+                  v-for="index in indexes"
+                  :key="index.index_name"
+                  class="border border-gray-200 rounded-lg p-4"
+                >
                   <div class="flex items-center justify-between mb-2">
                     <h4 class="font-medium text-gray-900">{{ index.index_name }}</h4>
                     <span
                       :class="{
                         'bg-primary-100 text-primary-800': index.index_type === 'PRIMARY',
                         'bg-success-100 text-success-800': index.index_type === 'UNIQUE',
-                        'bg-gray-100 text-gray-800': index.index_type === 'REGULAR'
+                        'bg-gray-100 text-gray-800': index.index_type === 'REGULAR',
                       }"
                       class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
                     >
@@ -389,18 +410,40 @@
               </div>
 
               <div v-if="loadingForeignKeys" class="p-6 text-center">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                <div
+                  class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"
+                ></div>
                 <p class="text-gray-600">Загрузка внешних ключей...</p>
               </div>
 
               <div v-else-if="foreignKeysError" class="p-6 text-center text-error-600">
                 <p class="mb-2">{{ foreignKeysError }}</p>
-                <button @click="refreshForeignKeys" class="text-sm text-primary-600 hover:text-primary-700">Попробовать снова</button>
+                <button
+                  @click="refreshForeignKeys"
+                  class="text-sm text-primary-600 hover:text-primary-700"
+                >
+                  Попробовать снова
+                </button>
               </div>
 
-              <div v-else-if="!foreignKeys.outgoingForeignKeys.length && !foreignKeys.incomingForeignKeys.length" class="p-6 text-center text-gray-500">
-                <svg class="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              <div
+                v-else-if="
+                  !foreignKeys.outgoingForeignKeys.length && !foreignKeys.incomingForeignKeys.length
+                "
+                class="p-6 text-center text-gray-500"
+              >
+                <svg
+                  class="w-12 h-12 text-gray-300 mx-auto mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                  />
                 </svg>
                 <p class="text-sm">Внешние ключи не найдены</p>
               </div>
@@ -409,13 +452,22 @@
                 <!-- Outgoing Foreign Keys -->
                 <div v-if="foreignKeys.outgoingForeignKeys.length">
                   <h4 class="font-medium text-gray-900 mb-3">Исходящие связи</h4>
-                  <div v-for="fk in foreignKeys.outgoingForeignKeys" :key="fk.constraint_name" class="border border-gray-200 rounded-lg p-3 bg-blue-50">
+                  <div
+                    v-for="fk in foreignKeys.outgoingForeignKeys"
+                    :key="fk.constraint_name"
+                    class="border border-gray-200 rounded-lg p-3 bg-blue-50"
+                  >
                     <div class="flex items-center justify-between mb-2">
-                      <span class="text-sm font-medium text-gray-900">{{ fk.constraint_name }}</span>
+                      <span class="text-sm font-medium text-gray-900">{{
+                        fk.constraint_name
+                      }}</span>
                       <span class="text-xs text-gray-500">FK</span>
                     </div>
                     <div class="text-sm text-gray-600">
-                      <p><strong>{{ fk.column_name }}</strong> → <strong>{{ fk.foreign_table_name }}.{{ fk.foreign_column_name }}</strong></p>
+                      <p>
+                        <strong>{{ fk.column_name }}</strong> →
+                        <strong>{{ fk.foreign_table_name }}.{{ fk.foreign_column_name }}</strong>
+                      </p>
                       <div class="flex gap-4 mt-1 text-xs">
                         <span>UPDATE: {{ fk.update_rule }}</span>
                         <span>DELETE: {{ fk.delete_rule }}</span>
@@ -427,13 +479,24 @@
                 <!-- Incoming Foreign Keys -->
                 <div v-if="foreignKeys.incomingForeignKeys.length">
                   <h4 class="font-medium text-gray-900 mb-3">Входящие связи</h4>
-                  <div v-for="fk in foreignKeys.incomingForeignKeys" :key="fk.constraint_name" class="border border-gray-200 rounded-lg p-3 bg-green-50">
+                  <div
+                    v-for="fk in foreignKeys.incomingForeignKeys"
+                    :key="fk.constraint_name"
+                    class="border border-gray-200 rounded-lg p-3 bg-green-50"
+                  >
                     <div class="flex items-center justify-between mb-2">
-                      <span class="text-sm font-medium text-gray-900">{{ fk.constraint_name }}</span>
+                      <span class="text-sm font-medium text-gray-900">{{
+                        fk.constraint_name
+                      }}</span>
                       <span class="text-xs text-gray-500">REF</span>
                     </div>
                     <div class="text-sm text-gray-600">
-                      <p><strong>{{ fk.referencing_table_name }}.{{ fk.referencing_column_name }}</strong> → этот столбец</p>
+                      <p>
+                        <strong
+                          >{{ fk.referencing_table_name }}.{{ fk.referencing_column_name }}</strong
+                        >
+                        → этот столбец
+                      </p>
                       <div class="flex gap-4 mt-1 text-xs">
                         <span>UPDATE: {{ fk.update_rule }}</span>
                         <span>DELETE: {{ fk.delete_rule }}</span>
@@ -483,14 +546,16 @@ const schema = ref<{ tableName: string; columns: ColumnSchema[] }>({
   columns: [],
 })
 
-const indexes = ref<Array<{
-  index_name: string
-  index_definition: string
-  index_type: 'PRIMARY' | 'UNIQUE' | 'REGULAR'
-  index_size: string
-  index_method: string
-  columns: string
-}>>([])
+const indexes = ref<
+  Array<{
+    index_name: string
+    index_definition: string
+    index_type: 'PRIMARY' | 'UNIQUE' | 'REGULAR'
+    index_size: string
+    index_method: string
+    columns: string
+  }>
+>([])
 
 const foreignKeys = ref<{
   outgoingForeignKeys: Array<{

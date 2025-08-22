@@ -127,7 +127,9 @@
                   </svg>
                 </div>
                 <div>
-                  <div class="text-2xl font-bold text-gray-900">{{ dataModel.relationships.length }}</div>
+                  <div class="text-2xl font-bold text-gray-900">
+                    {{ dataModel.relationships.length }}
+                  </div>
                   <div class="text-sm text-gray-600">Связей</div>
                 </div>
               </div>
@@ -149,8 +151,8 @@
                       stroke-linejoin="round"
                       stroke-width="2"
                       d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
-                  />
-                </svg>
+                    />
+                  </svg>
                 </div>
                 <div>
                   <div class="text-2xl font-bold text-gray-900">{{ totalColumns }}</div>
@@ -161,9 +163,7 @@
 
             <div class="bg-white rounded-lg shadow-card border border-gray-200 p-6">
               <div class="flex items-center">
-                <div
-                  class="w-12 h-12 bg-info-100 rounded-lg flex items-center justify-center mr-4"
-                >
+                <div class="w-12 h-12 bg-info-100 rounded-lg flex items-center justify-center mr-4">
                   <svg
                     class="w-6 h-6 text-info-600"
                     fill="none"
@@ -187,10 +187,15 @@
           </div>
 
           <!-- Diagram View -->
-          <div v-if="viewMode === 'diagram'" class="bg-white rounded-lg shadow-card border border-gray-200">
+          <div
+            v-if="viewMode === 'diagram'"
+            class="bg-white rounded-lg shadow-card border border-gray-200"
+          >
             <div class="px-6 py-4 border-b border-gray-200">
               <h2 class="text-lg font-semibold text-gray-900">Диаграмма связей</h2>
-              <p class="text-sm text-gray-600 mt-1">Визуальное представление структуры базы данных</p>
+              <p class="text-sm text-gray-600 mt-1">
+                Визуальное представление структуры базы данных
+              </p>
             </div>
 
             <div class="relative p-6 bg-gray-50 min-h-96 overflow-auto">
@@ -290,7 +295,9 @@
                         :fill="column.is_primary_key ? '#dc2626' : '#4b5563'"
                         :font-weight="column.is_primary_key ? 'bold' : 'normal'"
                       >
-                        {{ column.is_primary_key ? '🔑' : '' }} {{ column.column_name }} ({{ column.data_type }})
+                        {{ column.is_primary_key ? '🔑' : '' }} {{ column.column_name }} ({{
+                          column.data_type
+                        }})
                       </text>
                       <text
                         v-if="table.columns.length > 8"
@@ -354,13 +361,16 @@
                       <h4 class="text-xs font-medium text-gray-700 mb-1">Первичные ключи:</h4>
                       <div class="flex flex-wrap gap-1">
                         <span
-                          v-for="column in table.columns.filter(c => c.is_primary_key)"
+                          v-for="column in table.columns.filter((c) => c.is_primary_key)"
                           :key="column.column_name"
                           class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded"
                         >
                           🔑 {{ column.column_name }}
                         </span>
-                        <span v-if="!table.columns.some(c => c.is_primary_key)" class="text-xs text-gray-500">
+                        <span
+                          v-if="!table.columns.some((c) => c.is_primary_key)"
+                          class="text-xs text-gray-500"
+                        >
                           Нет первичных ключей
                         </span>
                       </div>
@@ -396,7 +406,10 @@
             </div>
 
             <!-- Relationships Details -->
-            <div v-if="dataModel.relationships.length" class="bg-white rounded-lg shadow-card border border-gray-200">
+            <div
+              v-if="dataModel.relationships.length"
+              class="bg-white rounded-lg shadow-card border border-gray-200"
+            >
               <div class="px-6 py-4 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-900">Детали связей</h2>
               </div>
@@ -405,22 +418,34 @@
                 <table class="w-full">
                   <thead class="bg-gray-50">
                     <tr>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Ограничение
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Исходная таблица
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Целевая таблица
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Правила
                       </th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200">
-                    <tr v-for="relationship in dataModel.relationships" :key="relationship.id" class="hover:bg-gray-50">
+                    <tr
+                      v-for="relationship in dataModel.relationships"
+                      :key="relationship.id"
+                      class="hover:bg-gray-50"
+                    >
                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {{ relationship.constraintName }}
                       </td>

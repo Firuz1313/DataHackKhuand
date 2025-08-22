@@ -133,19 +133,27 @@
               <div class="space-y-4">
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-gray-800 font-medium">Таблиц</span>
-                  <span class="text-lg font-bold text-gray-900">{{ realStats.totalTables || 0 }}</span>
+                  <span class="text-lg font-bold text-gray-900">{{
+                    realStats.totalTables || 0
+                  }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-gray-800 font-medium">Записей</span>
-                  <span class="text-lg font-bold text-gray-900">{{ formatNumber(realStats.totalRecords || 0) }}</span>
+                  <span class="text-lg font-bold text-gray-900">{{
+                    formatNumber(realStats.totalRecords || 0)
+                  }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-gray-800 font-medium">Размер БД</span>
-                  <span class="text-lg font-bold text-gray-900">{{ realStats.databaseSize || '0 MB' }}</span>
+                  <span class="text-lg font-bold text-gray-900">{{
+                    realStats.databaseSize || '0 MB'
+                  }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-gray-800 font-medium">Активные подключения</span>
-                  <span class="text-lg font-bold text-primary-600">{{ realStats.activeConnections || 0 }}</span>
+                  <span class="text-lg font-bold text-primary-600">{{
+                    realStats.activeConnections || 0
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -154,7 +162,7 @@
             <div class="bg-white rounded-lg shadow-card border border-gray-200 p-6">
               <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-semibold text-gray-900">Последние запросы</h3>
-                <button 
+                <button
                   @click="refreshQueries"
                   :disabled="loadingQueries"
                   class="text-sm text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50"
@@ -171,9 +179,10 @@
                   @click="executeStoredQuery(query)"
                 >
                   <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-mono text-gray-900 truncate flex-1 mr-2 font-medium">{{
-                      query.query.substring(0, 40) + '...'
-                    }}</span>
+                    <span
+                      class="text-xs font-mono text-gray-900 truncate flex-1 mr-2 font-medium"
+                      >{{ query.query.substring(0, 40) + '...' }}</span
+                    >
                     <span class="text-xs text-gray-700 font-medium">{{ query.duration }}</span>
                   </div>
                   <div class="flex items-center justify-between">
@@ -202,26 +211,36 @@
 
               <div v-if="realPerformance" class="space-y-4">
                 <div class="text-center mb-4">
-                  <div class="text-3xl font-bold text-gray-900 mb-1">{{ realPerformance.cpu?.current || 0 }}%</div>
+                  <div class="text-3xl font-bold text-gray-900 mb-1">
+                    {{ realPerformance.cpu?.current || 0 }}%
+                  </div>
                   <div class="text-sm text-gray-700 font-medium">CPU использование</div>
                 </div>
 
                 <div class="space-y-3">
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-800 font-medium">Память</span>
-                    <span class="text-sm font-bold text-gray-900">{{ realPerformance.memory?.current || 0 }}%</span>
+                    <span class="text-sm font-bold text-gray-900"
+                      >{{ realPerformance.memory?.current || 0 }}%</span
+                    >
                   </div>
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-800 font-medium">I/O</span>
-                    <span class="text-sm font-bold text-gray-900">{{ realPerformance.io?.current || 0 }}%</span>
+                    <span class="text-sm font-bold text-gray-900"
+                      >{{ realPerformance.io?.current || 0 }}%</span
+                    >
                   </div>
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-800 font-medium">Активные подключения</span>
-                    <span class="text-sm font-bold text-primary-600">{{ realPerformance.connections?.active || 0 }}</span>
+                    <span class="text-sm font-bold text-primary-600">{{
+                      realPerformance.connections?.active || 0
+                    }}</span>
                   </div>
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-800 font-medium">Макс. подключений</span>
-                    <span class="text-sm font-bold text-gray-900">{{ realPerformance.connections?.max || 100 }}</span>
+                    <span class="text-sm font-bold text-gray-900">{{
+                      realPerformance.connections?.max || 100
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -239,7 +258,9 @@
               <div class="bg-white border border-gray-200 rounded-lg p-4">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <div
+                      class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center"
+                    >
                       <svg
                         class="w-5 h-5 text-primary-600"
                         fill="none"
@@ -260,7 +281,7 @@
                     </div>
                   </div>
                   <div class="flex items-center space-x-2">
-                    <div 
+                    <div
                       :class="connectionStatus ? 'bg-success-500' : 'bg-error-500'"
                       class="w-2 h-2 rounded-full animate-pulse"
                     ></div>
@@ -456,15 +477,15 @@ const realTimeKPIs = computed(() => [
 // Computed data quality score based on real metrics
 const realDataQualityScore = computed(() => {
   if (!realStats.value.totalTables || !realStats.value.totalRecords) return 0
-  
+
   // Calculate quality score based on real metrics
   let score = 85 // Base score
-  
+
   // Add points for having data
   if (realStats.value.totalRecords > 0) score += 5
   if (realStats.value.totalTables > 5) score += 3
   if (realStats.value.activeConnections > 0) score += 5
-  
+
   return Math.min(score, 98)
 })
 
@@ -507,7 +528,6 @@ const loadRealData = async () => {
 
     // Update timestamp
     lastUpdate.value = new Date().toLocaleTimeString('ru-RU')
-
   } catch (error) {
     console.error('❌ Error loading real data:', error)
     connectionStatus.value = false
@@ -567,13 +587,13 @@ const refreshAllData = async () => {
     await loadRealData()
 
     // Add small delay between requests
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     // Only load secondary data if primary data loaded successfully
     if (realStats.value.totalTables > 0 || connectionStatus.value) {
       await loadQueries()
 
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
       await loadPerformance()
     }
@@ -586,7 +606,7 @@ const refreshAllData = async () => {
 
 const executeStoredQuery = async (query: any) => {
   console.log('Executing query:', query.query)
-  
+
   try {
     const result = await dbService.executeQuery(query.query)
     console.log('Query result:', result)
@@ -622,7 +642,10 @@ const startAutoRefresh = () => {
       console.error('Auto-refresh error:', error)
 
       // If rate limited, skip next few refreshes
-      if (error instanceof Error && (error.message.includes('429') || error.message.includes('Rate limit'))) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('429') || error.message.includes('Rate limit'))
+      ) {
         console.warn('⏸️ Auto-refresh paused due to rate limiting')
         // Clear interval and restart with longer delay
         if (updateInterval) {
@@ -638,10 +661,10 @@ const startAutoRefresh = () => {
 
 onMounted(async () => {
   console.log('🎯 Real-time Dashboard loaded')
-  
+
   // Load initial data
   await refreshAllData()
-  
+
   // Start auto-refresh
   startAutoRefresh()
 })

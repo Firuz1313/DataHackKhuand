@@ -298,7 +298,10 @@ const testConnections = async () => {
     connectionStatus.legacy = false
 
     // If it's a rate limit error, don't retry for a while
-    if (error instanceof Error && (error.message.includes('429') || error.message.includes('Rate limit'))) {
+    if (
+      error instanceof Error &&
+      (error.message.includes('429') || error.message.includes('Rate limit'))
+    ) {
       console.warn('⏸️ Connection test skipped due to rate limiting')
       return
     }
