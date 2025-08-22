@@ -1,361 +1,543 @@
-# 📊 Business Intelligence Dashboard - KPI Documentation
+# Определения KPI метрик
 
-## Executive Summary
+Подробное описание всех ключевых показателей эффективности (KPI), используемых в аналитическом дашборде.
 
-This document outlines the complete data model, KPI calculations, and business intelligence framework implemented for the DataBoard Analytics Dashboard. The system provides comprehensive e-commerce analytics with proper star schema design and prevents double counting through careful relationship management.
+## 📊 Основные KPI
 
-## 🗄️ Data Model & Star Schema
+### 1. Заказы (Orders)
 
-### Fact Tables (Transaction Data)
+**Определение**: Общее количество заказов за определенный период  
+**Единица измерения**: Штуки  
+**Частота обновления**: Реальное время
 
-- **orders**: Core transaction fact table with totals, dates, payment status
-- **order_items**: Line-item details with quantities, prices, products
-- **payments**: Payment transaction details and status tracking
-- **inventory_movements**: Stock movement events (in/out/adjustments)
-
-### Dimension Tables (Master Data)
-
-- **customers**: Customer master data with segmentation and contact info
-- **products**: Product catalog with categories, suppliers, pricing
-- **suppliers**: Supplier information and performance metrics
-- **product_categories**: Product categorization hierarchy
-- **dim_regions**: Geographic regions for territorial analysis
-- **dim_districts**: Geographic districts for granular location insights
-- **dim_payment_methods**: Payment method lookup table
-- **dim_dates**: Date dimension for time-series analysis
-
-### Relationships & Keys
+**Формула SQL:**
 
 ```sql
--- Primary relationships preventing double counting
-orders.customer_id → customers.id
-order_items.order_id → orders.id
-order_items.product_id → products.id
-products.supplier_id → suppliers.id
-products.category_id → product_categories.id
-payments.order_id → orders.id
-
--- Business keys for deduplication
-customers.customer_code (UNIQUE)
-products.product_code (UNIQUE)
-orders.order_number (UNIQUE)
-suppliers.supplier_code (UNIQUE)
+SELECT COUNT(*) as total_orders
+FROM orders
+WHERE order_date BETWEEN ? AND ?
 ```
 
-## 📈 Mandatory KPI Definitions & Formulas
+**Разновидности:**
 
-### 1. Orders (Заказы)
+- **Всего заказов** - все заказы независимо от статуса
+- **Завершенные заказы** - только со статусом 'delivered'
+- **Оплаченные заказы** - только с payment_status = 'paid'
+- **Отмененные заказы** - только со статусом 'cancelled'
 
-**Business Definition**: Total number of customer orders placed during the period
-
-**Formula**:
+**Пример расчета:**
 
 ```sql
-Total Orders = COUNT(DISTINCT orders.id)
-WHERE orders.order_date BETWEEN start_date AND end_date
-
-Growth Rate = ((current_period - previous_period) / previous_period) * 100
+-- Заказы за текущий месяц
+SELECT
+    COUNT(*) as total_orders,
+    COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered_orders,
+    COUNT(CASE WHEN payment_status = 'paid' THEN 1 END) as paid_orders,
+    COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_orders
+FROM orders
+WHERE order_date >= DATE_TRUNC('month', CURRENT_DATE)
 ```
-
-**Key Metrics**:
-
-- Total Orders Count
-- Orders Growth Rate (%)
-- Average Orders per Day
 
 ---
 
-### 2. Units (Единицы товара)
+### 2. Единицы (Units)
 
-**Business Definition**: Total quantity of products sold across all orders
+**Определение**: Общее количество проданных единиц товаров  
+**Единица измерения**: Штуки  
+**Частота обновления**: Реальное время
 
-**Formula**:
+**Формула SQL:**
 
 ```sql
-Total Units = SUM(order_items.quantity)
-FROM order_items
-JOIN orders ON order_items.order_id = orders.id
-WHERE orders.order_date BETWEEN start_date AND end_date
-
-Average Units per Order = Total Units / Total Orders
+SELECT SUM(oi.quantity) as total_units
+FROM order_items oi
+JOIN orders o ON oi.order_id = o.id
+WHERE o.order_date BETWEEN ? AND ?
+  AND o.payment_status = 'paid'
 ```
 
-**Key Metrics**:
+**Детализация:**
 
-- Total Units Sold
-- Units Growth Rate (%)
-- Average Units per Order
+- По категориям товаров
+- По отдельным товарам
+- По временным периодам
+- По каналам продаж
+
+**Пример расчета:**
+
+```sql
+-- Единицы по категориям за последние 30 дней
+SELECT
+    p.category,
+    SUM(oi.quantity) as units_sold
+FROM order_items oi
+JOIN orders o ON oi.order_id = o.id
+JOIN products p ON oi.product_id = p.id
+WHERE o.order_date >= CURRENT_DATE - INTERVAL '30 days'
+  AND o.payment_status = 'paid'
+GROUP BY p.category
+ORDER BY units_sold DESC
+```
 
 ---
 
-### 3. Revenue (Выручка)
+### 3. Валовая выручка (Gross Revenue)
 
-**Business Definition**: Financial performance with gross and net paid revenue
+**Определение**: Общая сумма всех заказов до вычета возвратов и скидок  
+**Единица измерения**: Рубли (RUB)  
+**Частота обновления**: Реальное время
 
-**Formulas**:
+**Формула SQL:**
 
 ```sql
--- Gross Revenue (Валовая выручка)
-Gross Revenue = SUM(orders.total_amount)
-WHERE orders.order_date BETWEEN start_date AND end_date
-
--- Net Paid Revenue (Оплаченная выручка)
-Net Paid Revenue = SUM(orders.total_amount)
-WHERE orders.payment_status = 'paid'
-  AND orders.order_date BETWEEN start_date AND end_date
+SELECT SUM(oi.quantity * oi.unit_price) as gross_revenue
+FROM order_items oi
+JOIN orders o ON oi.order_id = o.id
+WHERE o.order_date BETWEEN ? AND ?
 ```
 
-**Key Metrics**:
+**Особенности:**
 
-- Gross Revenue (total order value)
-- Net Paid Revenue (confirmed payments only)
-- Revenue Growth Rate (%)
+- Включает все заказы независимо от статуса оплаты
+- Не учитывает возвраты и отмены
+- Используется для оценки потенциального дохода
+
+**Пример расчета:**
+
+```sql
+-- Валовая выручка по месяцам
+SELECT
+    DATE_TRUNC('month', o.order_date) as month,
+    SUM(oi.quantity * oi.unit_price) as gross_revenue
+FROM order_items oi
+JOIN orders o ON oi.order_id = o.id
+WHERE o.order_date >= CURRENT_DATE - INTERVAL '12 months'
+GROUP BY DATE_TRUNC('month', o.order_date)
+ORDER BY month
+```
 
 ---
 
-### 4. AOV - Average Order Value (Средняя стоимость заказа)
+### 4. Оплаченная выручка (Net Paid Revenue)
 
-**Business Definition**: Average monetary value per order transaction
+**Определение**: Фактически полученная выручка от оплаченных заказов  
+**Единица измерения**: Рубли (RUB)  
+**Частота обновления**: Реальное время
 
-**Formula**:
+**Формула SQL:**
 
 ```sql
-AOV = SUM(orders.total_amount) / COUNT(DISTINCT orders.id)
-WHERE orders.order_date BETWEEN start_date AND end_date
-
-AOV by Channel = AVG(orders.total_amount) GROUP BY orders.source
+SELECT SUM(oi.quantity * oi.unit_price) as net_paid_revenue
+FROM order_items oi
+JOIN orders o ON oi.order_id = o.id
+WHERE o.order_date BETWEEN ? AND ?
+  AND o.payment_status = 'paid'
 ```
 
-**Key Metrics**:
+**Особенности:**
 
-- Overall AOV
-- AOV Growth Rate (%)
-- AOV by Channel breakdown
+- Включает только оплаченные заказы
+- Основной показатель для финансовой отчетности
+- Исключает возвраты (payment_status != 'refunded')
+
+**Пример расчета:**
+
+```sql
+-- Net Paid с детализацией по статусам
+SELECT
+    o.payment_status,
+    SUM(oi.quantity * oi.unit_price) as revenue
+FROM order_items oi
+JOIN orders o ON oi.order_id = o.id
+WHERE o.order_date BETWEEN ? AND ?
+GROUP BY o.payment_status
+```
 
 ---
 
-### 5. Payment Conversion (Конверсия оплаты)
+### 5. AOV (Average Order Value) - Средняя стоимость заказа
 
-**Business Definition**: Percentage of orders that result in successful payment
+**Определение**: Средняя сумма одного заказа  
+**Единица измерения**: Рубли (RUB)  
+**Частота обновления**: Реальное время
 
-**Formula**:
+**Формула:**
+AOV = Общая выручка / Количество заказов
+
+**Формула SQL:**
 
 ```sql
-Payment Conversion = (
-  COUNT(orders WHERE payment_status = 'paid') /
-  COUNT(total_orders)
-) * 100
-
--- Alternative with payments table
-Payment Conversion = (
-  COUNT(payments WHERE status = 'paid') /
-  COUNT(DISTINCT payments.order_id)
-) * 100
+SELECT
+    SUM(oi.quantity * oi.unit_price) / COUNT(DISTINCT o.id) as aov
+FROM order_items oi
+JOIN orders o ON oi.order_id = o.id
+WHERE o.order_date BETWEEN ? AND ?
+  AND o.payment_status = 'paid'
 ```
 
-**Key Metrics**:
+**Варианты расчета:**
 
-- Payment Success Rate (%)
-- Conversion Trend over time
+- **AOV по валовой выручке** - включает все заказы
+- **AOV по оплаченным заказам** - только оплаченные заказы
+- **AOV по сегментам клиентов** - B2B vs B2C
+
+**Пример расчета:**
+
+```sql
+-- AOV по сегментам клиентов
+SELECT
+    CASE
+        WHEN c.company_name IS NOT NULL THEN 'B2B'
+        ELSE 'B2C'
+    END as segment,
+    ROUND(SUM(oi.quantity * oi.unit_price) / COUNT(DISTINCT o.id), 2) as aov
+FROM order_items oi
+JOIN orders o ON oi.order_id = o.id
+JOIN customers c ON o.customer_id = c.id
+WHERE o.order_date BETWEEN ? AND ?
+  AND o.payment_status = 'paid'
+GROUP BY segment
+```
 
 ---
 
-### 6. Return Rate (Доля возвратов)
+### 6. Конверсия оплаты (Payment Conversion Rate)
 
-**Business Definition**: Percentage and volume of returned orders
+**Определение**: Доля заказов, которые были успешно оплачены  
+**Единица измерения**: Проценты (%)  
+**Частота обновления**: Реальное время
 
-**Formula**:
+**Формула:**
+Конверсия оплаты = (Оплаченные заказы / Всего заказов) × 100%
+
+**Формула SQL:**
 
 ```sql
-Return Rate = (
-  COUNT(orders WHERE status = 'returned') /
-  COUNT(total_orders)
-) * 100
-
-Return Amount = SUM(orders.total_amount WHERE status = 'returned')
-Return Units = SUM(order_items.quantity WHERE orders.status = 'returned')
+SELECT
+    ROUND(
+        COUNT(CASE WHEN payment_status = 'paid' THEN 1 END)::numeric /
+        COUNT(*)::numeric * 100, 2
+    ) as payment_conversion_rate
+FROM orders
+WHERE order_date BETWEEN ? AND ?
 ```
 
-**Key Metrics**:
+**Связанные метрики:**
 
-- Return Rate (%)
-- Total Return Amount (monetary)
-- Total Returned Units (quantity)
+- **Конверсия доставки** - доля доставленных заказов
+- **К��нверсия завершения** - доля завершенных заказов
+
+**Пример расчета:**
+
+```sql
+-- Конверсии по этапам воронки
+SELECT
+    COUNT(*) as total_orders,
+    COUNT(CASE WHEN payment_status = 'paid' THEN 1 END) as paid_orders,
+    COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered_orders,
+
+    ROUND(COUNT(CASE WHEN payment_status = 'paid' THEN 1 END)::numeric / COUNT(*)::numeric * 100, 2) as payment_conversion,
+    ROUND(COUNT(CASE WHEN status = 'delivered' THEN 1 END)::numeric / COUNT(*)::numeric * 100, 2) as delivery_conversion
+FROM orders
+WHERE order_date BETWEEN ? AND ?
+```
 
 ---
 
-### 7. Wallet Share (Доля кошельков)
+### 7. Доля возвратов (Return Rate)
 
-**Business Definition**: Percentage of payments made via digital wallets vs cards/cash
+**Определение**: Процент заказов, которые были возвращены  
+**Единица измерения**: Проценты (%)  
+**Частота обновления**: Ежедневно
 
-**Formula**:
+**Формула:**
+Доля возвратов = (Возвращенные заказы / Всего заказов) × 100%
+
+**Формула SQL:**
 
 ```sql
-Wallet Share = (
-  COUNT(payments WHERE method LIKE '%wallet%' OR method LIKE '%кошел%') /
-  COUNT(total_payments)
-) * 100
-
-Payment Mix = GROUP BY payment_method
-  SELECT method, COUNT(*) * 100.0 / total_count
+SELECT
+    ROUND(
+        COUNT(CASE WHEN status = 'returned' THEN 1 END)::numeric /
+        COUNT(*)::numeric * 100, 2
+    ) as return_rate
+FROM orders
+WHERE order_date BETWEEN ? AND ?
 ```
 
-**Key Metrics**:
+**Детализация:**
 
-- Wallet Payment Percentage (%)
-- Payment Method Mix breakdown
+- По товарам
+- По категориям
+- По временным периодам
+- По причинам возврата
+
+**Пример расчета:**
+
+```sql
+-- Доля возвратов по категориям товаров
+SELECT
+    p.category,
+    COUNT(DISTINCT o.id) as total_orders,
+    COUNT(DISTINCT CASE WHEN o.status = 'returned' THEN o.id END) as returned_orders,
+    ROUND(
+        COUNT(DISTINCT CASE WHEN o.status = 'returned' THEN o.id END)::numeric /
+        COUNT(DISTINCT o.id)::numeric * 100, 2
+    ) as return_rate
+FROM orders o
+JOIN order_items oi ON o.id = oi.order_id
+JOIN products p ON oi.product_id = p.id
+WHERE o.order_date BETWEEN ? AND ?
+GROUP BY p.category
+ORDER BY return_rate DESC
+```
 
 ---
 
-### 8. Channel Mix (Канальный микс)
+### 8. Доля кошельков (Wallet Share)
 
-**Business Definition**: Distribution of orders and revenue across acquisition channels
+**Определение**: Доля расходов клиента, приходящаяся на нашу компанию  
+**Единица измерения**: Проценты (%)  
+**Частота обновления**: Ежемесячно
 
-**Formula**:
+**Примерная формула:**
+Доля кошельков = (Потратил у нас / Общий бюджет клиента) × 100%
+
+**Упрощенный расчет SQL:**
 
 ```sql
-Channel Revenue Share = (
-  SUM(orders.total_amount) GROUP BY orders.source
-) / total_revenue * 100
-
-Top Channels = SELECT source, COUNT(*) as orders, SUM(total_amount) as revenue
-ORDER BY revenue DESC
+-- Расчет на осно��е изменения покупательской активности
+WITH customer_spending AS (
+    SELECT
+        c.id,
+        c.name,
+        SUM(oi.quantity * oi.unit_price) as total_spent,
+        COUNT(DISTINCT o.id) as order_count,
+        MAX(o.order_date) as last_order_date,
+        MIN(o.order_date) as first_order_date
+    FROM customers c
+    JOIN orders o ON c.id = o.customer_id
+    JOIN order_items oi ON o.id = oi.order_id
+    WHERE o.payment_status = 'paid'
+      AND o.order_date BETWEEN ? AND ?
+    GROUP BY c.id, c.name
+)
+SELECT
+    name,
+    total_spent,
+    order_count,
+    CASE
+        WHEN total_spent > 50000 THEN 'High Wallet Share'
+        WHEN total_spent > 20000 THEN 'Medium Wallet Share'
+        ELSE 'Low Wallet Share'
+    END as estimated_wallet_share
+FROM customer_spending
+ORDER BY total_spent DESC
 ```
-
-**Key Metrics**:
-
-- Channel Revenue Distribution (%)
-- Top Channels by volume and value
-- Channel Performance Ranking
 
 ---
 
-### 9. Geographic Analysis (Срезы по регионам/районам)
+### 9. Канальный микс (Channel Mix)
 
-**Business Definition**: Performance breakdown by geographic location
+**Определение**: Распределение продаж по различным каналам  
+**Единица измерения**: Проценты (%)  
+**Частота обновления**: Ежедневно
 
-**Formula**:
+**Каналы определяются по:**
+
+- Времени заказа (рабочие часы / вечер / ночь)
+- Типу клиента (B2B / B2C)
+- Дню недели (будни / выходные)
+
+**Формула SQL:**
 
 ```sql
--- Regional Performance
-Regional Revenue = SUM(orders.total_amount)
-JOIN customers ON orders.customer_id = customers.id
-JOIN dim_regions ON customer.region_id = regions.id
-GROUP BY regions.name
+SELECT
+    CASE
+        WHEN EXTRACT(HOUR FROM o.created_at) BETWEEN 9 AND 18 THEN 'Рабочие часы'
+        WHEN EXTRACT(HOUR FROM o.created_at) BETWEEN 19 AND 23 THEN 'Вечернее время'
+        ELSE 'Ночное время'
+    END as time_channel,
 
--- District Performance
-District Revenue = Similar query grouped by districts
+    COUNT(*) as orders_count,
+    SUM(oi.quantity * oi.unit_price) as revenue,
+
+    ROUND(COUNT(*)::numeric / SUM(COUNT(*)) OVER () * 100, 2) as orders_share,
+    ROUND(SUM(oi.quantity * oi.unit_price) / SUM(SUM(oi.quantity * oi.unit_price)) OVER () * 100, 2) as revenue_share
+
+FROM orders o
+JOIN order_items oi ON o.id = oi.order_id
+WHERE o.order_date BETWEEN ? AND ?
+  AND o.payment_status = 'paid'
+GROUP BY time_channel
+ORDER BY revenue_share DESC
 ```
-
-**Key Metrics**:
-
-- Top Regions by Revenue
-- Regional Order Distribution
-- District-level Performance
 
 ---
 
-### 10. Holiday/Weekend Effect (Эффект праздников/выходных)
+### 10. Региональное распределение (Geographic Distribution)
 
-**Business Definition**: Impact of weekends and holidays on order patterns
+**Определение**: Распределение продаж по регионам/районам  
+**Единица измерения**: Проценты (%) и абсолютные значения  
+**Частота обновления**: Ежедневно
 
-**Formula**:
+**Формула SQL:**
 
 ```sql
-Weekend Effect = (
-  (AVG(weekend_orders) - AVG(weekday_orders)) /
-  AVG(weekday_orders)
-) * 100
+SELECT
+    CASE
+        WHEN shipping_address LIKE '%Москва%' THEN 'Москв��'
+        WHEN shipping_address LIKE '%Санкт-Петербург%' THEN 'Санкт-Петербург'
+        WHEN shipping_address LIKE '%Екатеринбург%' THEN 'Екатеринбург'
+        ELSE 'Другие регионы'
+    END as region,
 
-Daily Patterns = SELECT
-  EXTRACT(DOW FROM order_date) as day_of_week,
-  COUNT(*) as orders,
-  SUM(total_amount) as revenue
-GROUP BY day_of_week
+    COUNT(*) as orders_count,
+    SUM(oi.quantity * oi.unit_price) as revenue,
+
+    ROUND(COUNT(*)::numeric / SUM(COUNT(*)) OVER () * 100, 2) as orders_share,
+    ROUND(SUM(oi.quantity * oi.unit_price) / SUM(SUM(oi.quantity * oi.unit_price)) OVER () * 100, 2) as revenue_share
+
+FROM orders o
+JOIN order_items oi ON o.id = oi.order_id
+WHERE o.order_date BETWEEN ? AND ?
+  AND o.payment_status = 'paid'
+GROUP BY region
+ORDER BY revenue_share DESC
 ```
 
-**Key Metrics**:
+---
 
-- Weekend vs Weekday Performance (%)
-- Daily Order Patterns
-- Seasonal Trends
+### 11. Эффект праздников/выходных
 
-## 🔍 EDA Insights & Business Recommendations
+**Определение**: Влияние праздников и выходных дней на продажи  
+**Единица измерения**: Множитель или проценты изменения  
+**Частота обновления**: Еженедельно
 
-### Insight 1: Payment Method Optimization
+**Формула SQL:**
 
-**Finding**: Credit card payments show 95% success rate vs 78% for bank transfers
-**Evidence**: Analysis of 10,000+ transactions over last 30 days
-**Impact**: High - 22% conversion improvement potential
-**Action**: Promote credit card payments for faster checkout conversion
+```sql
+WITH daily_stats AS (
+    SELECT
+        o.order_date,
+        EXTRACT(DOW FROM o.order_date) as day_of_week,
+        CASE
+            WHEN EXTRACT(DOW FROM o.order_date) IN (0, 6) THEN 'Выход��ые'
+            ELSE 'Будни'
+        END as day_type,
+        COUNT(*) as orders_count,
+        SUM(oi.quantity * oi.unit_price) as revenue
+    FROM orders o
+    JOIN order_items oi ON o.id = oi.order_id
+    WHERE o.payment_status = 'paid'
+      AND o.order_date BETWEEN ? AND ?
+    GROUP BY o.order_date, day_of_week, day_type
+),
+averages AS (
+    SELECT
+        day_type,
+        AVG(orders_count) as avg_orders,
+        AVG(revenue) as avg_revenue
+    FROM daily_stats
+    GROUP BY day_type
+)
+SELECT
+    day_type,
+    ROUND(avg_orders, 1) as avg_daily_orders,
+    ROUND(avg_revenue, 2) as avg_daily_revenue,
+    ROUND(avg_revenue / (SELECT avg_revenue FROM averages WHERE day_type = 'Будни'), 2) as revenue_multiplier
+FROM averages
+```
 
-### Insight 2: Weekend Revenue Spike
+## 📈 Дополнительные метрики
 
-**Finding**: Weekend orders are 35% higher than weekdays with 28% higher AOV
-**Evidence**: Saturday/Sunday avg: 1,250 orders vs Mon-Fri avg: 925 orders
-**Impact**: Medium - Weekend revenue represents 42% of weekly total
-**Action**: Increase weekend marketing spend and inventory allocation
+### Customer Lifetime Value (CLV)
 
-### Insight 3: Customer Concentration Risk
+**Определение**: Прогнозируемая прибыль от клиента за весь период сотрудничества  
+**Формула:**
+CLV = (AOV × Частота покупок × Маржинальность) × Срок жизни клиента
 
-**Finding**: Top 20% customers generate 68% of total revenue
-**Evidence**: Customer segmentation analysis shows revenue concentration
-**Impact**: High - Loss of 5% top customers = 13.6% revenue impact  
-**Action**: Implement VIP retention program and diversify customer acquisition
+```sql
+WITH customer_metrics AS (
+    SELECT
+        c.id,
+        c.registration_date,
+        COUNT(DISTINCT o.id) as total_orders,
+        SUM(oi.quantity * oi.unit_price) as total_spent,
+        DATE_PART('day', CURRENT_DATE - c.registration_date) as customer_age_days,
+        MAX(o.order_date) as last_order_date
+    FROM customers c
+    LEFT JOIN orders o ON c.id = o.customer_id AND o.payment_status = 'paid'
+    LEFT JOIN order_items oi ON o.id = oi.order_id
+    GROUP BY c.id, c.registration_date
+)
+SELECT
+    id,
+    total_orders,
+    total_spent,
+    customer_age_days,
+    CASE
+        WHEN customer_age_days > 0 AND total_orders > 0
+        THEN ROUND((total_spent / customer_age_days) * 365, 2)
+        ELSE 0
+    END as estimated_annual_value
+FROM customer_metrics
+WHERE total_orders > 0
+```
 
-## 🛠️ Technical Implementation
+### Индекс удовлетворенности клиентов
 
-### Deduplication Strategy
+**Определение**: Метрика на основе поведенческих данных  
+**Компоненты:**
 
-- Business keys prevent duplicate records
-- Audit logging tracks data quality
-- Deduplication log manages merge conflicts
+- Частота заказов
+- Отсутствие возвратов
+- Рост суммы заказов
 
-### Performance Optimization
+```sql
+SELECT
+    c.id,
+    c.name,
+    COUNT(DISTINCT o.id) as order_frequency,
+    COUNT(CASE WHEN o.status = 'returned' THEN 1 END) as return_count,
 
-- Indexed fact table joins
-- Materialized views for complex aggregations
-- Caching layer for real-time dashboard updates
+    -- Простой индекс удовлетворенности (0-100)
+    GREATEST(0, LEAST(100,
+        50 + -- базовое значение
+        (COUNT(DISTINCT o.id) * 5) - -- +5 за каждый заказ
+        (COUNT(CASE WHEN o.status = 'returned' THEN 1 END) * 20) -- -20 за каждый возврат
+    )) as satisfaction_index
 
-### Data Validation
+FROM customers c
+LEFT JOIN orders o ON c.id = o.customer_id
+WHERE c.registration_date >= CURRENT_DATE - INTERVAL '12 months'
+GROUP BY c.id, c.name
+HAVING COUNT(DISTINCT o.id) > 0
+ORDER BY satisfaction_index DESC
+```
 
-- Check constraints ensure data integrity
-- Automated validation functions
-- Exception reporting for anomalies
+## 🎯 Целевые значения KPI
 
-## 📊 Dashboard Architecture
+| Метрика                       | Хорошо    | Отлично    | Критический уровень |
+| ----------------------------- | --------- | ---------- | ------------------- |
+| Конверсия оплаты              | > 85%     | > 95%      | < 70%               |
+| AOV                           | > 5,000 ₽ | > 10,000 ₽ | < 2,000 ₽           |
+| Доля возвратов                | < 5%      | < 2%       | > 10%               |
+| Рост выручки (месяц к месяцу) | > 10%     | > 20%      | < 0%                |
+| Время обработки заказа        | < 24 часа | < 12 часов | > 48 часов          |
 
-### Frontend Components
+## 📊 Периодичность отчетности
 
-- Real-time KPI cards with tooltips
-- Interactive filters and date ranges
-- Responsive charts and visualizations
-- Export capabilities for all metrics
+- **Реальное время**: Заказы, Единицы, Выручка
+- **Ежедневно**: Конверсии, Возвраты, Региональное распределение
+- **Еженедельно**: AOV, Канальный микс, Эффект выходных
+- **Ежемесячно**: CLV, Доля кошельк��в, Глубокая аналитика
 
-### Backend Services
+## 📝 Примечания
 
-- RESTful API endpoints for each KPI
-- Configurable date range queries
-- Error handling and rate limiting
-- Comprehensive logging and monitoring
-
-### UX Features
-
-- Contextual tooltips explaining each metric
-- Growth indicators with color coding
-- Drill-down capabilities for detailed analysis
-- Mobile-responsive design
-
-## 🎯 Success Metrics
-
-The BI Dashboard provides:
-
-- ✅ Correct star schema preventing double counting
-- ✅ Documented keys and KPI formulas
-- ✅ ≥3 non-obvious insights with quantitative evidence
-- ✅ Clear business actions for each insight
-- ✅ Fast, clean dashboard with mandatory KPIs
-- ✅ Comprehensive filtering and tooltip system
-- ✅ Consistent numbers across all metrics
-
-This implementation meets all business requirements for a production-ready analytics platform with proper data governance and actionable insights.
+1. Все суммы указаны в российских рублях (RUB)
+2. Временные расчеты используют часовой пояс сервера БД
+3. Проценты округляются до 2 знаков после запятой
+4. Суммы округляются до 2 знаков после запятой
+5. При отсутствии данных возвращается 0 или NULL
+6. Все расчеты учитывают только корректные данные (прошедшие очистку)
