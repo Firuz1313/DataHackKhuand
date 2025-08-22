@@ -50,6 +50,8 @@
   padding: 0;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 body {
   font-family:
     'Inter',
@@ -62,11 +64,13 @@ body {
     Cantarell,
     sans-serif;
   line-height: 1.6;
-  color: var(--text-primary);
+  color: #1e293b;
   background-color: var(--bg-secondary);
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* Custom scrollbar */
