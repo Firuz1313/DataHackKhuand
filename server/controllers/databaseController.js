@@ -31,7 +31,7 @@ class DatabaseController {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: 'Ошибка получения статуса подключения',
+        error: 'Ошибка получения статус�� подключения',
         details: error.message,
       })
     }
@@ -67,7 +67,7 @@ class DatabaseController {
         `)
         activeConnections = parseInt(connectionResult.rows[0]?.count || 1)
       } catch (err) {
-        console.warn('⚠️ Не удалось получить количество активных подключений:', err.message)
+        console.warn('⚠️ Не удалось получить количес��во активных подключений:', err.message)
       }
 
       // Estimate total records (simplified approach)
@@ -182,7 +182,7 @@ class DatabaseController {
       if (!trimmedQuery.startsWith('select')) {
         return res.status(403).json({
           success: false,
-          error: 'Разрешены ��олько SELECT запросы',
+          error: 'Разрешены только SELECT запросы',
         })
       }
 
@@ -316,24 +316,6 @@ class DatabaseController {
     }
   }
 
-  // Helper methods
-  formatTimeAgo(date) {
-    if (!date) return 'неизвестно'
-
-    const now = new Date()
-    const diffMs = now - new Date(date)
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-
-    if (diffHours < 1) return 'менее часа назад'
-    if (diffHours < 24) return `${diffHours} ч назад`
-    const diffDays = Math.floor(diffHours / 24)
-    return `${diffDays} д назад`
-  }
-
-  getRandomStatus() {
-    const statuses = ['Активна', 'Активна', 'Активна', 'Обновляется', 'Ошибка']
-    return statuses[Math.floor(Math.random() * statuses.length)]
-  }
 }
 
 module.exports = new DatabaseController()
