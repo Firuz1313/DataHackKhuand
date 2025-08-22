@@ -172,7 +172,7 @@ class DatabaseService {
   }
 
   private async apiCallWithRetry<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    let lastError: Error
+    let lastError: Error = new Error('Unknown error')
 
     for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
       try {
