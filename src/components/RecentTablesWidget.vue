@@ -57,8 +57,8 @@
             </svg>
           </div>
           <div>
-            <h4 class="font-medium text-gray-900">{{ table.name }}</h4>
-            <p class="text-sm text-gray-600">
+            <h4 class="font-semibold text-gray-900">{{ table.name }}</h4>
+            <p class="text-sm text-gray-700 font-medium">
               {{ table.records }} записей
               <span v-if="table.schema">• схема: {{ table.schema }}</span>
             </p>
