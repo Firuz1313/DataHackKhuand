@@ -15,6 +15,19 @@
       </div>
     </div>
 
+    <!-- API Status Indicator -->
+    <div class="mb-4 p-3 rounded-lg" :class="apiConnected ? 'bg-success-50 border border-success-200' : 'bg-error-50 border border-error-200'">
+      <div class="flex items-center space-x-2">
+        <div :class="apiConnected ? 'bg-success-500' : 'bg-error-500'" class="w-2 h-2 rounded-full animate-pulse"></div>
+        <span class="text-sm font-medium" :class="apiConnected ? 'text-success-700' : 'text-error-700'">
+          API {{ apiConnected ? 'подключено' : 'отключено' }}
+        </span>
+        <button @click="checkApiConnection" class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">
+          🔄 Проверить
+        </button>
+      </div>
+    </div>
+
     <!-- Chart Area -->
     <div class="mb-6">
       <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center relative overflow-hidden">
@@ -35,13 +48,13 @@
         </div>
 
         <!-- Connection Status Overlay -->
-        <div v-if="!isConnected" class="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center">
+        <div v-if="!apiConnected" class="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center">
           <div class="text-center">
             <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <p class="text-gray-600">Нет подключения к БД</p>
-            <button @click="checkConnection" class="mt-2 btn-primary text-sm">Проверить</button>
+            <p class="text-gray-600">Нет подключения к API</p>
+            <button @click="checkApiConnection" class="mt-2 btn-primary text-sm">Проверить</button>
           </div>
         </div>
       </div>
@@ -105,18 +118,21 @@
             v-model="newQuery"
             @keyup.enter="executeQuery"
             type="text" 
-            placeholder="SELECT * FROM table_name LIMIT 10"
+            placeholder="SELECT * FROM information_schema.tables LIMIT 10"
             class="flex-1 input-field text-sm font-mono"
+            :disabled="!apiConnected"
           >
           <button 
             @click="executeQuery"
-            :disabled="!newQuery.trim() || executingQuery"
+            :disabled="!newQuery.trim() || executingQuery || !apiConnected"
             class="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {{ executingQuery ? '⏳' : '▶️' }} Выполнить
           </button>
         </div>
-        <p class="text-xs text-gray-500 mt-1">Только SELECT запросы разрешены</p>
+        <p class="text-xs text-gray-500 mt-1">
+          {{ apiConnected ? 'Только SELECT запросы разрешены' : 'API недоступно' }}
+        </p>
       </div>
     </div>
   </div>
@@ -127,7 +143,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { dbService, type QueryActivity } from '../services/database'
 
 const selectedTimeRange = ref('1h')
-const isConnected = ref(true)
+const apiConnected = ref(false)
 const loadingQueries = ref(false)
 const executingQuery = ref(false)
 const newQuery = ref('')
@@ -161,19 +177,21 @@ const updateChartData = () => {
   }
 }
 
-const checkConnection = async () => {
+const checkApiConnection = async () => {
   try {
-    isConnected.value = await dbService.testConnection()
-    if (isConnected.value) {
+    apiConnected.value = await dbService.checkApiHealth()
+    if (apiConnected.value) {
       await refreshQueries()
     }
   } catch (error) {
-    isConnected.value = false
-    console.error('Connection check failed:', error)
+    apiConnected.value = false
+    console.error('API connection check failed:', error)
   }
 }
 
 const refreshQueries = async () => {
+  if (!apiConnected.value) return
+  
   loadingQueries.value = true
   try {
     const queries = await dbService.getRecentQueries()
@@ -191,7 +209,7 @@ const refreshQueries = async () => {
 }
 
 const executeQuery = async () => {
-  if (!newQuery.value.trim() || executingQuery.value) return
+  if (!newQuery.value.trim() || executingQuery.value || !apiConnected.value) return
   
   executingQuery.value = true
   const startTime = Date.now()
@@ -205,7 +223,7 @@ const executeQuery = async () => {
     }
     
     const result = await dbService.executeQuery(query)
-    const duration = Date.now() - startTime
+    const duration = result.executionTime || (Date.now() - startTime)
     
     // Add to recent queries
     const newQueryRecord: QueryActivity = {
@@ -225,9 +243,9 @@ const executeQuery = async () => {
     queryStats.total++
     queryStats.successful++
     
-    // Show result (in a real app, this would open a results panel)
+    // Show result
     console.log('Query result:', result)
-    alert(`Запрос выполнен успешно!\nВремя выполнения: ${duration}ms\nРезультатов: ${result.length}\n\nПроверьте консоль для подробностей.`)
+    alert(`✅ Запрос выполнен успешно!\nВремя выполнения: ${duration}ms\nРезультатов: ${result.rows.length}\n\nПроверьте консоль для подробностей.`)
     
     newQuery.value = ''
   } catch (error) {
@@ -252,14 +270,14 @@ const executeQuery = async () => {
     queryStats.failed++
     
     console.error('Query execution error:', error)
-    alert(`Ошибка выполнения запроса:\n${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
+    alert(`❌ Ошибка выполнения запроса:\n${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
   } finally {
     executingQuery.value = false
   }
 }
 
 onMounted(async () => {
-  await checkConnection()
+  await checkApiConnection()
   updateChartData()
 })
 </script>
