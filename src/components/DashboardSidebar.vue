@@ -224,7 +224,6 @@
 import { ref, reactive, onMounted } from 'vue'
 import { dbService } from '../services/database'
 
-const activeItem = ref('dashboard')
 const testing = ref(false)
 
 const connectionStatus = reactive({
