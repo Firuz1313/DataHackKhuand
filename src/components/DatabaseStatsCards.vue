@@ -203,21 +203,55 @@ const fetchStats = async () => {
     stats.value = dbStats
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка'
-    error.value = errorMessage.includes('429')
-      ? 'Слишком много запросов. Подождите немного.'
-      : errorMessage
+
+    if (errorMessage.includes('429') || errorMessage.includes('Rate limit')) {
+      error.value = 'Слишком много запросов. Данные будут загружены позже.'
+      // Set fallback data instead of showing error
+      stats.value = {
+        totalTables: 0,
+        totalRecords: 0,
+        databaseSize: 'Загрузка...',
+        activeConnections: 0,
+        newTables: 0,
+        newRecords: 0,
+        sizeGrowth: '0 MB',
+        maxConnections: 100,
+      }
+    } else if (errorMessage.includes('temporarily unavailable')) {
+      error.value = 'Сервис временно недоступен. Повторите попытку позже.'
+    } else {
+      error.value = errorMessage
+    }
+
     console.error('Error fetching database stats:', err)
   } finally {
     loading.value = false
   }
 }
 
-// Delay API calls to prevent rate limiting when multiple components mount
+// Delay API calls significantly to prevent rate limiting
 const delayedFetch = async () => {
-  // Add random delay between 100-600ms to stagger API calls
-  const delay = 100 + Math.random() * 500
+  // Add longer delay between 1-3 seconds to stagger API calls
+  const delay = 1000 + Math.random() * 2000
   await new Promise((resolve) => setTimeout(resolve, delay))
-  await fetchStats()
+
+  try {
+    await fetchStats()
+  } catch (err) {
+    console.warn('Skipped stats fetch due to rate limiting')
+    // Show placeholder data instead of error
+    loading.value = false
+    stats.value = {
+      totalTables: 0,
+      totalRecords: 0,
+      databaseSize: 'Недоступно',
+      activeConnections: 0,
+      newTables: 0,
+      newRecords: 0,
+      sizeGrowth: '0 MB',
+      maxConnections: 100,
+    }
+  }
 }
 
 onMounted(() => {
