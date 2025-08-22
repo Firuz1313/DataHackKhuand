@@ -343,10 +343,14 @@
         <DatabaseStatsCards />
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <!-- Recent Tables - Takes full width -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <!-- Recent Tables - Takes 2 columns -->
           <div class="lg:col-span-2">
             <RecentTablesWidget />
+          </div>
+          <!-- API Status - Takes 1 column -->
+          <div class="lg:col-span-1">
+            <ApiStatusWidget />
           </div>
         </div>
 
@@ -437,6 +441,7 @@ import DashboardSidebar from '../components/DashboardSidebar.vue'
 import DashboardHeader from '../components/DashboardHeader.vue'
 import DatabaseStatsCards from '../components/DatabaseStatsCards.vue'
 import RecentTablesWidget from '../components/RecentTablesWidget.vue'
+import ApiStatusWidget from '../components/ApiStatusWidget.vue'
 import { dbService } from '../services/database'
 
 // Icons as components
