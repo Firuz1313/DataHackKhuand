@@ -34,11 +34,11 @@ class CustomTablesService {
     try {
       const response = await fetch(`${this.baseUrl}/migrations/status`)
       const data = await response.json()
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Failed to get migration status')
       }
-      
+
       return data.data
     } catch (error) {
       console.error('Failed to get migration status:', error)
@@ -47,7 +47,7 @@ class CustomTablesService {
         total: 10,
         executed: 8,
         pending: 2,
-        lastExecution: new Date().toISOString()
+        lastExecution: new Date().toISOString(),
       }
     }
   }
@@ -57,16 +57,16 @@ class CustomTablesService {
       const response = await fetch(`${this.baseUrl}/migrations/run`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       })
-      
+
       const data = await response.json()
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Migration failed')
       }
-      
+
       return data.data
     } catch (error) {
       console.error('Migration execution failed:', error)
@@ -79,11 +79,11 @@ class CustomTablesService {
     try {
       const response = await fetch(`${this.baseUrl}/business-tables`)
       const data = await response.json()
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Failed to get business tables')
       }
-      
+
       return data.data
     } catch (error) {
       console.error('Failed to get business tables:', error)
@@ -93,20 +93,20 @@ class CustomTablesService {
           name: 'customers',
           display_name: 'Клиенты',
           description: 'Управление клиентской базой',
-          record_count: 150
+          record_count: 150,
         },
         {
           name: 'orders',
           display_name: 'Заказы',
           description: 'Управление заказами',
-          record_count: 89
+          record_count: 89,
         },
         {
           name: 'products',
           display_name: 'Товары',
           description: 'Каталог товаров',
-          record_count: 234
-        }
+          record_count: 234,
+        },
       ]
     }
   }
@@ -121,11 +121,11 @@ class CustomTablesService {
       const response = await fetch(`${this.baseUrl}/business-tables`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(tableConfig)
+        body: JSON.stringify(tableConfig),
       })
-      
+
       const data = await response.json()
       return data.success
     } catch (error) {
@@ -143,11 +143,11 @@ class CustomTablesService {
     try {
       const response = await fetch(`${this.baseUrl}/business-tables/${tableName}/validate`)
       const data = await response.json()
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Validation failed')
       }
-      
+
       return data.data
     } catch (error) {
       console.error('Table validation failed:', error)
@@ -155,9 +155,7 @@ class CustomTablesService {
       return {
         isValid: true,
         errors: [],
-        warnings: [
-          { field: 'email', warning: 'Missing email for some records', count: 3 }
-        ]
+        warnings: [{ field: 'email', warning: 'Missing email for some records', count: 3 }],
       }
     }
   }
@@ -187,7 +185,7 @@ class CustomTablesService {
         api: 'active',
         cache: 'working',
         validation: 'enabled',
-        lastCheck: new Date().toISOString()
+        lastCheck: new Date().toISOString(),
       }
     }
   }
@@ -197,11 +195,11 @@ class CustomTablesService {
     try {
       const response = await fetch(`${this.baseUrl}/admin/activities?limit=${limit}`)
       const data = await response.json()
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Failed to get activities')
       }
-      
+
       return data.data
     } catch (error) {
       console.error('Failed to get recent activities:', error)
@@ -212,22 +210,22 @@ class CustomTablesService {
           type: 'INSERT',
           description: 'Добавлен новый клиент',
           table_name: 'customers',
-          created_at: new Date(Date.now() - 2 * 60000).toISOString()
+          created_at: new Date(Date.now() - 2 * 60000).toISOString(),
         },
         {
           id: 2,
           type: 'UPDATE',
           description: 'Обновлен статус заказа',
           table_name: 'orders',
-          created_at: new Date(Date.now() - 5 * 60000).toISOString()
+          created_at: new Date(Date.now() - 5 * 60000).toISOString(),
         },
         {
           id: 3,
           type: 'INSERT',
           description: 'Добавлен новый товар',
           table_name: 'products',
-          created_at: new Date(Date.now() - 10 * 60000).toISOString()
-        }
+          created_at: new Date(Date.now() - 10 * 60000).toISOString(),
+        },
       ]
     }
   }
@@ -240,15 +238,15 @@ class CustomTablesService {
   }> {
     try {
       const response = await fetch(`${this.baseUrl}/export/all?format=${format}`, {
-        method: 'POST'
+        method: 'POST',
       })
-      
+
       const data = await response.json()
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Export failed')
       }
-      
+
       return data.data
     } catch (error) {
       console.error('Data export failed:', error)
@@ -265,15 +263,15 @@ class CustomTablesService {
   }> {
     try {
       const response = await fetch(`${this.baseUrl}/backup/create`, {
-        method: 'POST'
+        method: 'POST',
       })
-      
+
       const data = await response.json()
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Backup failed')
       }
-      
+
       return data.data
     } catch (error) {
       console.error('Backup creation failed:', error)
@@ -285,9 +283,9 @@ class CustomTablesService {
   async clearCache(): Promise<boolean> {
     try {
       const response = await fetch(`${this.baseUrl}/cache/clear`, {
-        method: 'POST'
+        method: 'POST',
       })
-      
+
       const data = await response.json()
       return data.success
     } catch (error) {
@@ -307,11 +305,11 @@ class CustomTablesService {
     try {
       const response = await fetch(`${this.baseUrl}/admin/analytics`)
       const data = await response.json()
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Failed to get analytics')
       }
-      
+
       return data.data
     } catch (error) {
       console.error('Failed to get admin analytics:', error)
@@ -321,7 +319,7 @@ class CustomTablesService {
         totalRecords: 473,
         dailyOperations: 142,
         errorRate: 0.2,
-        performanceScore: 95.8
+        performanceScore: 95.8,
       }
     }
   }
