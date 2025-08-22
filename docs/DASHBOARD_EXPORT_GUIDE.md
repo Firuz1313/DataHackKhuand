@@ -5,12 +5,14 @@
 ## 📋 Обзор возможностей экспорта
 
 ### Доступные форматы:
+
 - **PNG** - для вставки в презентации и документы
 - **PDF** - для формальных отчетов и архивирования
 - **HTML** - для интерактивного просмотра
 - **Excel** - для дальнейшего анализа данных
 
 ### Что можно экспортировать:
+
 - Полный дашборд
 - Отдельные виджеты
 - Таблицы с данными
@@ -23,31 +25,36 @@
 #### Экспорт в PDF через браузер:
 
 **Шаг 1**: Откройте дашборд в браузере
+
 ```
 http://localhost:5173
 ```
 
 **Шаг 2**: Настройте оптимальный вид
+
 - Разверните дашборд на полный экран
 - Убедитесь что все данные загружены
 - При необходимости скройте боковую панель
 
 **Шаг 3**: Откройте меню печати
+
 - Windows/Linux: `Ctrl + P`
 - macOS: `Cmd + P`
 
 **Шаг 4**: Настройте параметры печати
+
 ```
 Назначение: Сохранить как PDF
 Размер бумаги: A4 или A3 (для больших дашбордов)
 Ориентация: Альбомная (рекомендуется)
 Поля: Минимальные
-Параметры: 
+Параметры:
   ✅ Фоновая графика
   ✅ Верхние и нижние колонтитулы (по желанию)
 ```
 
 **Шаг 5**: Сохраните файл
+
 - Нажмите "Сохранить"
 - Выберите папку и имя файла
 - Формат имени: `dashboard_YYYYMMDD_HHMM.pdf`
@@ -55,11 +62,13 @@ http://localhost:5173
 #### Экспорт отдельных виджетов:
 
 **Для виджетов с графиками:**
+
 1. Щелкните правой кнопкой на график
 2. Выберите "Сохранить изображение как..."
 3. Выберите формат PNG или SVG
 
 **Для таблиц данных:**
+
 1. Выделите содержимое та��лицы
 2. Скопируйте (`Ctrl+C`)
 3. Вставьте в Excel или Google Sheets
@@ -70,6 +79,7 @@ http://localhost:5173
 ### 2. Расширения браузера
 
 #### FireShot (Chrome/Firefox)
+
 ```
 1. Установите расширение FireShot
 2. Откройте дашборд
@@ -80,9 +90,10 @@ http://localhost:5173
 ```
 
 #### Full Page Screen Capture (Chrome)
+
 ```
 1. Установите расширение
-2. Откройте дашборд  
+2. Откройте дашборд
 3. Нажмите на иконку расширения
 4. Дождитесь завершения скриншота
 5. Скачайте PNG файл
@@ -97,71 +108,71 @@ http://localhost:5173
 Создайте файл `export_dashboard.js`:
 
 ```javascript
-const puppeteer = require('puppeteer');
-const fs = require('fs');
+const puppeteer = require('puppeteer')
+const fs = require('fs')
 
 async function exportDashboard() {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    
-    // Настройка размера страницы для дашборда
-    await page.setViewport({
-        width: 1920,
-        height: 1080,
-        deviceScaleFactor: 1,
-    });
-    
-    try {
-        // Переход на дашборд
-        await page.goto('http://localhost:5173', {
-            waitUntil: 'networkidle2',
-            timeout: 30000
-        });
-        
-        // Ожидание загрузки данных
-        await page.waitForSelector('[data-testid="dashboard-loaded"]', {
-            timeout: 10000
-        });
-        
-        // Дополнительная задержка для анимаций
-        await page.waitForTimeout(2000);
-        
-        // Экспорт в PNG
-        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-        
-        await page.screenshot({
-            path: `dashboard_${timestamp}.png`,
-            fullPage: true,
-            type: 'png'
-        });
-        
-        // Экспорт в PDF
-        await page.pdf({
-            path: `dashboard_${timestamp}.pdf`,
-            format: 'A3',
-            landscape: true,
-            printBackground: true,
-            margin: {
-                top: '20px',
-                right: '20px',
-                bottom: '20px',
-                left: '20px'
-            }
-        });
-        
-        console.log('✅ Дашборд экспортирован успешно');
-        
-    } catch (error) {
-        console.error('❌ Ошибка экспорта:', error);
-    } finally {
-        await browser.close();
-    }
+  const browser = await puppeteer.launch()
+  const page = await browser.newPage()
+
+  // Настройка размера страницы для дашборда
+  await page.setViewport({
+    width: 1920,
+    height: 1080,
+    deviceScaleFactor: 1,
+  })
+
+  try {
+    // Переход на дашборд
+    await page.goto('http://localhost:5173', {
+      waitUntil: 'networkidle2',
+      timeout: 30000,
+    })
+
+    // Ожидание загрузки данных
+    await page.waitForSelector('[data-testid="dashboard-loaded"]', {
+      timeout: 10000,
+    })
+
+    // Дополнительная задержка для анимаций
+    await page.waitForTimeout(2000)
+
+    // Экспорт в PNG
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+
+    await page.screenshot({
+      path: `dashboard_${timestamp}.png`,
+      fullPage: true,
+      type: 'png',
+    })
+
+    // Экспорт в PDF
+    await page.pdf({
+      path: `dashboard_${timestamp}.pdf`,
+      format: 'A3',
+      landscape: true,
+      printBackground: true,
+      margin: {
+        top: '20px',
+        right: '20px',
+        bottom: '20px',
+        left: '20px',
+      },
+    })
+
+    console.log('✅ Дашборд экспортирован успешно')
+  } catch (error) {
+    console.error('❌ Ошибка экспорта:', error)
+  } finally {
+    await browser.close()
+  }
 }
 
-exportDashboard();
+exportDashboard()
 ```
 
 **Установка и запуск:**
+
 ```bash
 npm install puppeteer
 node export_dashboard.js
@@ -187,32 +198,32 @@ def export_dashboard():
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--window-size=1920,1080')
-    
+
     driver = webdriver.Chrome(options=options)
-    
+
     try:
         # Переход на дашборд
         driver.get('http://localhost:5173')
-        
+
         # Ожидание загрузки
         wait = WebDriverWait(driver, 30)
         wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-        
+
         # Дополнител��ное ожидание для загрузки данных
         time.sleep(5)
-        
+
         # Скриншот
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         screenshot_path = f'dashboard_{timestamp}.png'
-        
+
         # Установка размера окна для полного скриншота
         driver.set_window_size(1920, driver.execute_script("return document.body.scrollHeight"))
-        
+
         # Сохранение скриншота
         driver.save_screenshot(screenshot_path)
-        
+
         print(f'✅ Скриншот сохранен: {screenshot_path}')
-        
+
     except Exception as e:
         print(f'❌ Ошибка: {e}')
     finally:
@@ -223,6 +234,7 @@ if __name__ == "__main__":
 ```
 
 **Установка зависимостей:**
+
 ```bash
 pip install selenium
 # + установка ChromeDriver
@@ -235,6 +247,7 @@ pip install selenium
 #### HTML/CSS to PDF API сервисы:
 
 **PDFShift.io:**
+
 ```bash
 curl -X POST \
   https://api.pdfshift.io/v3/convert/pdf \
@@ -251,6 +264,7 @@ curl -X POST \
 ```
 
 **HTML/CSS to Image API:**
+
 ```bash
 curl -X POST \
   https://htmlcsstoimage.com/demo_run \
@@ -271,17 +285,19 @@ curl -X POST \
 /* Стили для печати и экспорта */
 @media print {
   /* Скрытие элементов навигации */
-  .sidebar, .navigation, .header-menu {
+  .sidebar,
+  .navigation,
+  .header-menu {
     display: none !important;
   }
-  
+
   /* Полная ширина для контента */
   .main-content {
     width: 100% !important;
     margin: 0 !important;
     padding: 10px !important;
   }
-  
+
   /* Оптимизация размеров виджетов */
   .widget-card {
     break-inside: avoid;
@@ -289,18 +305,18 @@ curl -X POST \
     box-shadow: none;
     border: 1px solid #ddd;
   }
-  
+
   /* Цвета для печати */
   .bg-gradient-to-br {
     background: white !important;
     color: black !important;
   }
-  
+
   /* Таблицы */
   .data-table {
     font-size: 12px;
   }
-  
+
   .data-table th,
   .data-table td {
     padding: 4px 8px;
@@ -313,14 +329,14 @@ curl -X POST \
   .sidebar {
     display: none;
   }
-  
+
   .main-content {
     width: 100%;
     margin-left: 0;
   }
-  
+
   .widget-card {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     margin-bottom: 20px;
   }
@@ -336,62 +352,62 @@ curl -X POST \
 const exportHelpers = {
   // Переключение в режим экспорта
   enableExportMode() {
-    document.body.classList.add('export-mode');
+    document.body.classList.add('export-mode')
     // Скрытие интерактивных элементов
-    document.querySelectorAll('.tooltip, .dropdown').forEach(el => {
-      el.style.display = 'none';
-    });
+    document.querySelectorAll('.tooltip, .dropdown').forEach((el) => {
+      el.style.display = 'none'
+    })
   },
-  
+
   // Возврат к обычному режиму
   disableExportMode() {
-    document.body.classList.remove('export-mode');
-    document.querySelectorAll('.tooltip, .dropdown').forEach(el => {
-      el.style.display = '';
-    });
+    document.body.classList.remove('export-mode')
+    document.querySelectorAll('.tooltip, .dropdown').forEach((el) => {
+      el.style.display = ''
+    })
   },
-  
+
   // Ожидание загрузки всех данных
   async waitForDataLoad() {
-    const maxWait = 30000; // 30 секунд
-    const startTime = Date.now();
-    
+    const maxWait = 30000 // 30 секунд
+    const startTime = Date.now()
+
     while (Date.now() - startTime < maxWait) {
-      const loadingElements = document.querySelectorAll('.loading, .skeleton');
+      const loadingElements = document.querySelectorAll('.loading, .skeleton')
       if (loadingElements.length === 0) {
-        return true;
+        return true
       }
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500))
     }
-    return false;
+    return false
   },
-  
+
   // Принудительная загрузка всех виджетов
   async loadAllWidgets() {
-    const widgets = document.querySelectorAll('[data-widget-id]');
+    const widgets = document.querySelectorAll('[data-widget-id]')
     for (const widget of widgets) {
       // Trigger update if needed
-      const updateEvent = new CustomEvent('forceUpdate');
-      widget.dispatchEvent(updateEvent);
+      const updateEvent = new CustomEvent('forceUpdate')
+      widget.dispatchEvent(updateEvent)
     }
-    
+
     // Wait for updates
-    await new Promise(resolve => setTimeout(resolve, 2000));
-  }
-};
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+  },
+}
 
 // Глобальная функция для экспорта
-window.prepareForExport = async function() {
-  exportHelpers.enableExportMode();
-  await exportHelpers.loadAllWidgets();
-  await exportHelpers.waitForDataLoad();
-  console.log('✅ Дашборд готов к экспорту');
-};
+window.prepareForExport = async function () {
+  exportHelpers.enableExportMode()
+  await exportHelpers.loadAllWidgets()
+  await exportHelpers.waitForDataLoad()
+  console.log('✅ Дашборд готов к экспорту')
+}
 
-window.finishExport = function() {
-  exportHelpers.disableExportMode();
-  console.log('✅ Режим экспорта отключен');
-};
+window.finishExport = function () {
+  exportHelpers.disableExportMode()
+  console.log('✅ Режим экспорта отключен')
+}
 ```
 
 ---
@@ -406,29 +422,27 @@ window.finishExport = function() {
 <template>
   <div class="stats-export" ref="statsContainer">
     <DatabaseStatsCards :stats="databaseStats" />
-    <button @click="exportStats" class="export-btn">
-      📊 Экспорт статистики
-    </button>
+    <button @click="exportStats" class="export-btn">📊 Экспорт статистики</button>
   </div>
 </template>
 
 <script setup>
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas'
 
 const exportStats = async () => {
-  const element = statsContainer.value;
+  const element = statsContainer.value
   const canvas = await html2canvas(element, {
     backgroundColor: 'white',
     scale: 2, // Высокое качество
-    logging: false
-  });
-  
+    logging: false,
+  })
+
   // Конвертация в PNG
-  const link = document.createElement('a');
-  link.download = `stats_${new Date().toISOString().slice(0,10)}.png`;
-  link.href = canvas.toDataURL();
-  link.click();
-};
+  const link = document.createElement('a')
+  link.download = `stats_${new Date().toISOString().slice(0, 10)}.png`
+  link.href = canvas.toDataURL()
+  link.click()
+}
 </script>
 ```
 
@@ -436,24 +450,24 @@ const exportStats = async () => {
 
 ```vue
 <script setup>
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx'
 
 const exportTableToExcel = (tableData, fileName) => {
-  const ws = XLSX.utils.json_to_sheet(tableData);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Data');
-  
-  XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0,10)}.xlsx`);
-};
+  const ws = XLSX.utils.json_to_sheet(tableData)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Data')
+
+  XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0, 10)}.xlsx`)
+}
 
 const exportTableToCSV = (tableData, fileName) => {
-  const csvContent = convertToCSV(tableData);
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `${fileName}_${new Date().toISOString().slice(0,10)}.csv`;
-  link.click();
-};
+  const csvContent = convertToCSV(tableData)
+  const blob = new Blob([csvContent], { type: 'text/csv' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `${fileName}_${new Date().toISOString().slice(0, 10)}.csv`
+  link.click()
+}
 </script>
 ```
 
@@ -464,6 +478,7 @@ const exportTableToCSV = (tableData, fileName) => {
 ### Стандартный отчет (PDF)
 
 **Параметры:**
+
 - Формат: A4 альбомная
 - Поля: 20mm
 - Шрифт: Arial 12pt
@@ -472,6 +487,7 @@ const exportTableToCSV = (tableData, fileName) => {
 ### Презентационный формат (PNG)
 
 **Параметры:**
+
 - Разрешение: 1920x1080
 - DPI: 300 для печати
 - Формат: PNG с прозрачностью
@@ -479,6 +495,7 @@ const exportTableToCSV = (tableData, fileName) => {
 ### Архивный формат (PDF/A)
 
 **Параметры:**
+
 - Стандарт: PDF/A-1b
 - Встроенные шрифты
 - Без интерактивных элементов
@@ -540,25 +557,29 @@ echo "✅ Ежедневный экспорт заверш��н: $EXPORT_DIR"
 ### Частые проблемы и решения:
 
 **Проблема**: Пустой или неполный скриншот
-**Решение**: 
+**Решение**:
+
 - Увеличьте время ожидания загрузки
 - Проверьте размер viewport
 - Убедитесь что данные загружены
 
 **Проблема**: Плохое качество изображения
 **Решение**:
+
 - Увеличьте DPI/scale в настройках
 - Используйте векторные форматы (SVG)
 - Настройте правильное разрешение
 
 **Проблема**: Обрезанный контент
 **Решение**:
+
 - Используйте fullPage: true
 - Проверьте CSS overflow
 - Настройте правильные размеры страницы
 
 **Проблема**: Медленный экспорт
 **Решение**:
+
 - Отключите анимации на время экспорта
 - Оптимизируйте запросы к БД
 - Используйте headless режим
@@ -568,6 +589,7 @@ echo "✅ Ежедневный экспорт заверш��н: $EXPORT_DIR"
 ## 📋 Чек-лист экспорта
 
 ### Перед экспортом:
+
 - [ ] Сервер запущен и доступен
 - [ ] Все данные загружены
 - [ ] Дашборд отображается корректно
@@ -575,6 +597,7 @@ echo "✅ Ежедневный экспорт заверш��н: $EXPORT_DIR"
 - [ ] Настроены параметры экспорта
 
 ### После экспорта:
+
 - [ ] Проверено качество изображения/PDF
 - [ ] Файл сохранен с правильным именем
 - [ ] Добавлена дата в имя файла
