@@ -77,7 +77,7 @@
     <div class="mt-6 pt-4 border-t border-gray-200">
       <div class="flex items-center justify-between text-sm">
         <span class="text-gray-600">
-          База данных: <span class="font-mono">{{ import.meta.env.VITE_LEGACY_DB_NAME || 'neondb' }}</span>
+          База данных: <span class="font-mono">{{ getDatabaseName() }}</span>
         </span>
         <div class="flex items-center space-x-2">
           <div class="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
@@ -144,6 +144,11 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const tables = ref<TableInfo[]>([])
 const selectedTable = ref<TableInfo | null>(null)
+
+const getDatabaseName = (): string => {
+  const legacyDbName = import.meta.env.VITE_LEGACY_DB_NAME
+  return legacyDbName || 'neondb'
+}
 
 const fetchTables = async () => {
   loading.value = true
