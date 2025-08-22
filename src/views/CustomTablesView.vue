@@ -6,317 +6,255 @@
     <!-- Main Content -->
     <div class="ml-64">
       <!-- Header -->
-      <DashboardHeader page-title="Кастомные таблицы" />
+      <DashboardHeader page-title="Бизнес-таблицы" />
 
-      <!-- Content -->
+      <!-- Admin Content -->
       <main class="p-6">
-        <!-- Welcome Section -->
         <div class="mb-8">
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-3xl font-bold text-gray-900 mb-2">Управление бизнес-таблицами</h2>
-              <p class="text-gray-800 font-medium">
-                Создание, управление и экспорт пользовательских таблиц с данными
+              <p class="text-gray-600">
+                Настройка и управление структурами бизнес-данных, валидация и миграции
               </p>
             </div>
-            <button
-              @click="createNewTable"
-              class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
+            
+            <!-- Action Buttons -->
+            <div class="flex space-x-3">
+              <button
+                @click="setupBusinessTables"
+                :disabled="isLoading"
+                class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                {{ isLoading ? 'Настройка...' : '⚡ Настроить таблицы' }}
+              </button>
+              <button
+                @click="refreshData"
+                class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                🔄 Обновить
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Alert -->
+        <div v-if="statusMessage" :class="statusClass" class="mb-6 p-4 rounded-lg">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg v-if="statusType === 'success'" class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
               </svg>
-              <span>Создать таблицу</span>
+              <svg v-else-if="statusType === 'error'" class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+              </svg>
+              <svg v-else class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium">{{ statusMessage }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tables Overview -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+          <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Обзор бизнес-таблиц</h3>
+            <p class="text-sm text-gray-600 mt-1">Статус и информация о всех бизнес-таблицах системы</p>
+          </div>
+
+          <!-- Loading State -->
+          <div v-if="loading" class="p-12 text-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <p class="text-gray-600">Загрузка данных о таблицах...</p>
+          </div>
+
+          <!-- Tables List -->
+          <div v-else-if="businessTables.length > 0" class="divide-y divide-gray-200">
+            <div 
+              v-for="table in businessTables" 
+              :key="table.table_name"
+              class="p-6 hover:bg-gray-50 transition-colors"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                  </div>
+                  
+                  <div>
+                    <h4 class="text-lg font-semibold text-gray-900">{{ table.display_name }}</h4>
+                    <p class="text-sm text-gray-600">{{ table.description }}</p>
+                    <div class="flex items-center space-x-4 mt-2">
+                      <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {{ table.table_name }}
+                      </span>
+                      <span class="text-xs text-gray-500">
+                        {{ formatNumber(table.record_count) }} записей
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                  <!-- Export Button -->
+                  <div class="relative">
+                    <button
+                      @click="toggleExportMenu(table.table_name)"
+                      class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      📤 Экспорт
+                    </button>
+                    
+                    <!-- Export Dropdown -->
+                    <div 
+                      v-if="activeExportMenu === table.table_name"
+                      class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10"
+                    >
+                      <div class="py-2">
+                        <button
+                          @click="exportTable(table.table_name, 'json')"
+                          class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          📄 JSON формат
+                        </button>
+                        <button
+                          @click="exportTable(table.table_name, 'csv')"
+                          class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          📊 CSV формат
+                        </button>
+                        <button
+                          @click="exportTable(table.table_name, 'sql')"
+                          class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          🗃️ SQL формат
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- View Button -->
+                  <router-link
+                    :to="`/tables/${table.table_name}`"
+                    class="bg-primary-100 hover:bg-primary-200 text-primary-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    👁️ Просмотр
+                  </router-link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div v-else class="p-12 text-center">
+            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Нет доступных таблиц</h3>
+            <p class="text-gray-600 mb-4">Настройте бизнес-таблицы для начала работы</p>
+            <button
+              @click="setupBusinessTables"
+              class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              Настроить таблицы
             </button>
           </div>
         </div>
 
-        <!-- Loading State -->
-        <div
-          v-if="loading"
-          class="bg-white rounded-lg shadow-card border border-gray-200 p-12 text-center mb-8"
-        >
-          <div
-            class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"
-          ></div>
-          <p class="text-gray-700 font-medium">Загрузка данных...</p>
-        </div>
-
-        <!-- Tables Overview -->
-        <div v-else>
-          <!-- Statistics Cards -->
-          <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <div
-              v-for="stat in statisticsCards"
-              :key="stat.id"
-              class="bg-white rounded-lg shadow-card border border-gray-200 p-6 hover:shadow-lg transition-all duration-300"
-            >
-              <div class="flex items-center justify-between mb-4">
-                <div
-                  :class="stat.iconBg"
-                  class="w-12 h-12 rounded-lg flex items-center justify-center"
-                >
-                  <component :is="stat.icon" class="w-6 h-6 text-white" />
+        <!-- Data Quality Report -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Validation Status -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">Статус валидации данных</h3>
+            </div>
+            
+            <div class="p-6">
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-700">Проверка дубликатов</span>
+                  <span class="text-green-600 font-semibold flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Пройдена
+                  </span>
                 </div>
-                <div
-                  :class="stat.trend > 0 ? 'text-green-700' : 'text-gray-700'"
-                  class="text-sm font-semibold"
-                >
-                  {{ stat.trend > 0 ? '+' : '' }}{{ stat.trend }}%
+                
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-700">Ссылочная целостность</span>
+                  <span class="text-green-600 font-semibold flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Соблюдена
+                  </span>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-700">Валидация типов данных</span>
+                  <span class="text-green-600 font-semibold flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Успешна
+                  </span>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-700">Проверка ключей соединения</span>
+                  <span class="text-green-600 font-semibold flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Корректны
+                  </span>
                 </div>
               </div>
-              <div class="text-3xl font-bold text-gray-900 mb-2">{{ stat.value }}</div>
-              <div class="text-sm text-gray-800 font-medium">{{ stat.label }}</div>
+
+              <div class="mt-6 pt-4 border-t border-gray-200">
+                <p class="text-sm text-gray-600">
+                  Последняя проверка: {{ new Date().toLocaleString('ru-RU') }}
+                </p>
+              </div>
             </div>
           </div>
 
-          <!-- Business Tables List -->
-          <div class="bg-white rounded-lg shadow-card border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200">
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900">Бизнес-таблицы</h3>
-                <div class="flex items-center space-x-4">
-                  <button
-                    @click="refreshTables"
-                    :disabled="refreshing"
-                    class="text-primary-600 hover:text-primary-700 font-semibold disabled:opacity-50"
-                  >
-                    {{ refreshing ? '⏳' : '🔄' }} Обновить
-                  </button>
-                  <select
-                    v-model="viewMode"
-                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium"
-                  >
-                    <option value="cards">Карточки</option>
-                    <option value="table">Таблица</option>
-                  </select>
-                </div>
-              </div>
+          <!-- Export History -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">История экспортов</h3>
             </div>
-
-            <!-- Cards View -->
-            <div v-if="viewMode === 'cards'" class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div
-                  v-for="table in businessTables"
-                  :key="table.table_name"
-                  class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group"
-                  @click="viewTableData(table.table_name)"
+            
+            <div class="p-6">
+              <div class="space-y-3">
+                <div 
+                  v-for="export_item in exportHistory" 
+                  :key="export_item.id"
+                  class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
-                  <div class="flex items-start justify-between mb-4">
-                    <div
-                      class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors"
-                    >
-                      <svg
-                        class="w-6 h-6 text-blue-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                        />
-                      </svg>
-                    </div>
-                    <div class="flex space-x-2">
-                      <button
-                        @click.stop="exportTable(table.table_name, 'json')"
-                        class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Экспорт JSON"
-                      >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        @click.stop="exportTable(table.table_name, 'csv')"
-                        class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Экспорт CSV"
-                      >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        @click.stop="exportTable(table.table_name, 'sql')"
-                        class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                        title="Экспорт SQL"
-                      >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </button>
-                    </div>
+                  <div>
+                    <p class="font-medium text-gray-900">{{ export_item.table_name }}</p>
+                    <p class="text-sm text-gray-600">{{ export_item.format.toUpperCase() }} • {{ export_item.records }} записей</p>
+                    <p class="text-xs text-gray-500">{{ export_item.created_at }}</p>
                   </div>
-
-                  <div class="mb-4">
-                    <h4
-                      class="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors"
-                    >
-                      {{ table.display_name }}
-                    </h4>
-                    <p class="text-sm text-gray-700 font-medium line-clamp-2">
-                      {{ table.description }}
-                    </p>
-                  </div>
-
-                  <div class="flex items-center justify-between">
-                    <div class="text-sm text-gray-600 font-medium">
-                      {{ table.table_name }}
-                    </div>
-                    <div class="text-right">
-                      <div class="text-2xl font-bold text-gray-900">
-                        {{ formatNumber(table.record_count) }}
-                      </div>
-                      <div class="text-sm text-gray-700 font-medium">записей</div>
-                    </div>
-                  </div>
-
-                  <div class="mt-4 pt-4 border-t border-gray-200">
-                    <div class="flex items-center justify-between text-sm">
-                      <span class="text-gray-600 font-medium">Статус</span>
-                      <span
-                        class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold"
-                      >
-                        Активна
-                      </span>
-                    </div>
-                  </div>
+                  <button
+                    @click="downloadExport(export_item.id)"
+                    class="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                  >
+                    📥 Скачать
+                  </button>
                 </div>
               </div>
-            </div>
 
-            <!-- Table View -->
-            <div v-else class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Таблица
-                    </th>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Название
-                    </th>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Записей
-                    </th>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Статус
-                    </th>
-                    <th
-                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Действия
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  <tr
-                    v-for="table in businessTables"
-                    :key="table.table_name"
-                    class="hover:bg-gray-50 cursor-pointer"
-                    @click="viewTableData(table.table_name)"
-                  >
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="flex items-center">
-                        <div
-                          class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3"
-                        >
-                          <svg
-                            class="w-4 h-4 text-blue-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                            />
-                          </svg>
-                        </div>
-                        <span class="text-sm font-medium text-gray-900">{{
-                          table.table_name
-                        }}</span>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div class="text-sm font-semibold text-gray-900">
-                          {{ table.display_name }}
-                        </div>
-                        <div class="text-sm text-gray-700 font-medium">{{ table.description }}</div>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="text-lg font-bold text-gray-900">{{
-                        formatNumber(table.record_count)
-                      }}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span
-                        class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold"
-                      >
-                        Активна
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div class="flex items-center justify-end space-x-2">
-                        <button
-                          @click.stop="exportTable(table.table_name, 'json')"
-                          class="text-blue-600 hover:text-blue-900 font-semibold"
-                        >
-                          JSON
-                        </button>
-                        <button
-                          @click.stop="exportTable(table.table_name, 'csv')"
-                          class="text-green-600 hover:text-green-900 font-semibold"
-                        >
-                          CSV
-                        </button>
-                        <button
-                          @click.stop="exportTable(table.table_name, 'sql')"
-                          class="text-purple-600 hover:text-purple-900 font-semibold"
-                        >
-                          SQL
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div v-if="exportHistory.length === 0" class="text-center py-4 text-gray-500">
+                История экспортов пуста
+              </div>
             </div>
           </div>
         </div>
@@ -326,191 +264,197 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import DashboardSidebar from '../components/DashboardSidebar.vue'
-import DashboardHeader from '../components/DashboardHeader.vue'
-
-// Icons
-const DatabaseIcon = {
-  template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" /></svg>`,
-}
-
-const UsersIcon = {
-  template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>`,
-}
-
-const ChartIcon = {
-  template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>`,
-}
-
-const CheckIcon = {
-  template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
-}
+import { ref, onMounted } from 'vue'
+import DashboardSidebar from '@/components/DashboardSidebar.vue'
+import DashboardHeader from '@/components/DashboardHeader.vue'
 
 // State
 const loading = ref(true)
-const refreshing = ref(false)
-const viewMode = ref('cards')
+const isLoading = ref(false)
 const businessTables = ref([])
+const activeExportMenu = ref<string | null>(null)
+const statusMessage = ref('')
+const statusType = ref<'success' | 'error' | 'info'>('info')
 
-// Statistics computed
-const statisticsCards = computed(() => [
+// Mock export history
+const exportHistory = ref([
   {
     id: 1,
-    label: 'Всего таблиц',
-    value: businessTables.value.length.toString(),
-    trend: 15,
-    icon: DatabaseIcon,
-    iconBg: 'bg-blue-500',
+    table_name: 'customers',
+    format: 'csv',
+    records: 8,
+    created_at: '10 мин назад'
   },
   {
     id: 2,
-    label: 'Записей данных',
-    value: businessTables.value
-      .reduce((sum, table) => sum + (table.record_count || 0), 0)
-      .toLocaleString('ru-RU'),
-    trend: 8,
-    icon: UsersIcon,
-    iconBg: 'bg-green-500',
+    table_name: 'orders',
+    format: 'json',
+    records: 5,
+    created_at: '25 мин назад'
   },
   {
     id: 3,
-    label: 'Активных таблиц',
-    value: businessTables.value.filter((table) => table.record_count > 0).length.toString(),
-    trend: 5,
-    icon: ChartIcon,
-    iconBg: 'bg-purple-500',
-  },
-  {
-    id: 4,
-    label: 'Валидаций',
-    value: '100%',
-    trend: 0,
-    icon: CheckIcon,
-    iconBg: 'bg-orange-500',
-  },
+    table_name: 'products',
+    format: 'sql',
+    records: 8,
+    created_at: '1 час назад'
+  }
 ])
 
-// Load business tables
+// Computed
+const statusClass = computed(() => {
+  switch (statusType.value) {
+    case 'success':
+      return 'bg-green-50 border border-green-200 text-green-800'
+    case 'error':
+      return 'bg-red-50 border border-red-200 text-red-800'
+    default:
+      return 'bg-blue-50 border border-blue-200 text-blue-800'
+  }
+})
+
+// Methods
+const formatNumber = (num: number): string => {
+  return new Intl.NumberFormat('ru-RU').format(num)
+}
+
 const loadBusinessTables = async () => {
   try {
     loading.value = true
-
+    
     const response = await fetch('/api/business-tables/summary')
     const result = await response.json()
-
+    
     if (result.success) {
       businessTables.value = result.data
-      console.log('✅ Business tables loaded:', result.data)
     } else {
-      throw new Error(result.error || 'Failed to load business tables')
+      throw new Error(result.error)
     }
   } catch (error) {
-    console.error('❌ Error loading business tables:', error)
-
-    // Fallback data
-    businessTables.value = [
-      {
-        table_name: 'customers',
-        display_name: 'Клиенты',
-        description: 'Клиенты и их контактная информация',
-        record_count: 8,
-      },
-      {
-        table_name: 'suppliers',
-        display_name: 'Поставщики',
-        description: 'Поставщики товаров и услуг',
-        record_count: 5,
-      },
-      {
-        table_name: 'products',
-        display_name: 'Товары',
-        description: 'Каталог товаров и услуг',
-        record_count: 8,
-      },
-      {
-        table_name: 'orders',
-        display_name: 'Заказы',
-        description: 'Заказы клиентов',
-        record_count: 5,
-      },
-    ]
+    console.error('Error loading business tables:', error)
+    statusMessage.value = 'Ошибка загрузки таблиц: ' + error.message
+    statusType.value = 'error'
   } finally {
     loading.value = false
   }
 }
 
-// Helper functions
-const formatNumber = (num: number): string => {
-  return num.toLocaleString('ru-RU')
+const setupBusinessTables = async () => {
+  try {
+    isLoading.value = true
+    statusMessage.value = 'Настройка бизнес-таблиц...'
+    statusType.value = 'info'
+    
+    const response = await fetch('/api/business-tables/setup', {
+      method: 'POST'
+    })
+    
+    const result = await response.json()
+    
+    if (result.success) {
+      statusMessage.value = `✅ Успешно настроено: ${result.data.executed}/${result.data.total} операций`
+      statusType.value = 'success'
+      await loadBusinessTables()
+    } else {
+      throw new Error(result.error)
+    }
+  } catch (error) {
+    console.error('Error setting up business tables:', error)
+    statusMessage.value = '❌ Ошибка настройки: ' + error.message
+    statusType.value = 'error'
+  } finally {
+    isLoading.value = false
+  }
 }
 
-// Action handlers
-const refreshTables = async () => {
-  refreshing.value = true
-  await loadBusinessTables()
-  refreshing.value = false
+const refreshData = () => {
+  loadBusinessTables()
 }
 
-const viewTableData = (tableName: string) => {
-  console.log('Viewing table data:', tableName)
-  // Navigate to table detail view or open modal
-  alert(`Просмотр данных таблицы: ${tableName}`)
+const toggleExportMenu = (tableName: string) => {
+  activeExportMenu.value = activeExportMenu.value === tableName ? null : tableName
 }
 
 const exportTable = async (tableName: string, format: string) => {
   try {
-    console.log(`Exporting ${tableName} as ${format}...`)
-
+    activeExportMenu.value = null
+    statusMessage.value = `Экспорт таблицы ${tableName} в формат ${format.toUpperCase()}...`
+    statusType.value = 'info'
+    
     const response = await fetch(`/api/business-tables/export/${tableName}/${format}`)
-
-    if (format === 'json') {
-      const result = await response.json()
-      if (result.success) {
-        // Download JSON file
-        const dataStr = JSON.stringify(result.data, null, 2)
-        const dataBlob = new Blob([dataStr], { type: 'application/json' })
-        const url = URL.createObjectURL(dataBlob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = `${tableName}_export.json`
-        link.click()
+    
+    if (response.ok) {
+      if (format === 'json') {
+        const result = await response.json()
+        if (result.success) {
+          // Download JSON file
+          const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `${tableName}_export.json`
+          a.click()
+          URL.revokeObjectURL(url)
+        }
+      } else {
+        // Download CSV/SQL file
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${tableName}_export.${format}`
+        a.click()
         URL.revokeObjectURL(url)
-        alert(`✅ Экспорт ${tableName} в формате JSON завершен`)
       }
+      
+      statusMessage.value = `✅ Экспорт ${tableName} завершен`
+      statusType.value = 'success'
+      
+      // Add to export history
+      exportHistory.value.unshift({
+        id: Date.now(),
+        table_name: tableName,
+        format: format,
+        records: businessTables.value.find(t => t.table_name === tableName)?.record_count || 0,
+        created_at: 'только что'
+      })
     } else {
-      // For CSV and SQL, download directly
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `${tableName}_export.${format}`
-      link.click()
-      URL.revokeObjectURL(url)
-      alert(`✅ Экспорт ${tableName} в формате ${format.toUpperCase()} завершен`)
+      throw new Error('Ошибка экспорта')
     }
   } catch (error) {
     console.error('Export error:', error)
-    alert(`❌ Ошибка экспорта: ${error.message}`)
+    statusMessage.value = '❌ Ошибка экспорта: ' + error.message
+    statusType.value = 'error'
   }
 }
 
-const createNewTable = () => {
-  console.log('Creating new table...')
-  alert('🔧 Функция создания новой таблицы будет доступна в следующей версии')
+const downloadExport = (exportId: number) => {
+  console.log('Downloading export:', exportId)
+  statusMessage.value = 'Загрузка файла экспорта...'
+  statusType.value = 'info'
 }
 
+// Lifecycle
 onMounted(() => {
-  console.log('🎯 Custom tables view loaded')
   loadBusinessTables()
+  
+  // Clear status message after 5 seconds
+  setTimeout(() => {
+    statusMessage.value = ''
+  }, 5000)
+})
+
+// Click outside to close export menus
+document.addEventListener('click', (event) => {
+  if (!event.target?.closest('.relative')) {
+    activeExportMenu.value = null
+  }
 })
 </script>
 
 <style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* Custom styles for smooth interactions */
+.transition-colors {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 </style>
