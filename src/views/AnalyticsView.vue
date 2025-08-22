@@ -324,14 +324,24 @@ const refreshAnalytics = async () => {
 }
 
 const startRealTimeUpdates = () => {
-  updateInterval = setInterval(() => {
-    // Update real-time stats
-    realTimeStats.activeConnections = Math.max(1, realTimeStats.activeConnections + Math.floor((Math.random() - 0.5) * 3))
-    realTimeStats.queriesPerMinute = Math.max(0, realTimeStats.queriesPerMinute + Math.floor((Math.random() - 0.5) * 10))
-    realTimeStats.avgResponseTime = Math.max(50, realTimeStats.avgResponseTime + Math.floor((Math.random() - 0.5) * 20))
-    
-    lastUpdate.value = new Date().toLocaleTimeString()
-  }, 5000) // Update every 5 seconds
+  updateInterval = setInterval(async () => {
+    try {
+      // Update real-time stats from API
+      const realtimeData = await dbService.getRealTimeStats()
+      realTimeStats.activeConnections = realtimeData.activeConnections
+      realTimeStats.queriesPerMinute = realtimeData.queriesPerMinute
+      realTimeStats.avgResponseTime = realtimeData.avgResponseTime
+      realTimeStats.cacheSize = realtimeData.cacheSize
+
+      // Update performance metrics
+      const performanceData = await dbService.getPerformanceMetrics()
+      Object.assign(performance, performanceData)
+
+      lastUpdate.value = new Date().toLocaleTimeString()
+    } catch (error) {
+      console.error('Failed to update real-time data:', error)
+    }
+  }, 10000) // Update every 10 seconds
 }
 
 onMounted(() => {
