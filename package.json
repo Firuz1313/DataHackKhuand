@@ -18,7 +18,8 @@
     "start": "npm run dev:full"
   },
   "dependencies": {
-    "vue": "^3.5.17"
+    "vue": "^3.5.17",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",
@@ -31,6 +32,7 @@
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.7.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.1.0",
     "eslint": "^9.29.0",
     "eslint-plugin-vue": "~10.2.0",
     "jiti": "^2.4.2",
@@ -43,7 +45,6 @@
     "vite": "^7.0.0",
     "vite-plugin-vue-devtools": "^7.7.7",
     "vitest": "^3.2.4",
-    "vue-tsc": "^2.2.10",
-    "concurrently": "^9.1.0"
+    "vue-tsc": "^2.2.10"
   }
 }
