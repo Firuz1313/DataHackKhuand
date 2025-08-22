@@ -258,7 +258,7 @@ ORDER BY table_name;`,
   {
     id: 2,
     title: 'Структура таблиц',
-    description: 'Подробная информация о столбцах всех таблиц',
+    description: 'Подробная информация о столб��ах всех таблиц',
     category: 'Схема БД',
     difficulty: 'Средний',
     preview: 'SELECT table_name, column_name, data_type, is_nullable...',
@@ -453,7 +453,7 @@ LIMIT 10;`,
   {
     id: 13,
     title: 'Статистика подключений',
-    description: 'Количество подключений по пользователям и базам данных',
+    description: 'Количество подключений по ��ользователям и базам данных',
     category: 'Мониторинг',
     difficulty: 'Средний',
     preview: 'SELECT datname, usename, COUNT(*) FROM pg_stat_activity...',
@@ -630,6 +630,11 @@ const loadProfessionalQuery = (query: ProfessionalQuery) => {
   currentQuery.value = query.sql
   queryResults.value = null
   queryError.value = null
+
+  // Show notification
+  console.log(`Загружен запрос: ${query.title}`)
+  console.log(`Описание: ${query.description}`)
+  console.log(`Ожидаемый результат: ${query.expectedResult}`)
 }
 
 const executeProfessionalQuery = async (query: ProfessionalQuery) => {
