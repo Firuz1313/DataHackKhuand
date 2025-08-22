@@ -329,7 +329,7 @@
         <!-- Footer -->
         <div class="mt-12 pt-8 border-t border-gray-200">
           <div class="flex items-center justify-between text-sm text-gray-700 font-medium">
-            <div>© 2024 DataBoard. Профессиональная панель управления базами данных.</div>
+            <div>© 2024 DataBoard. Профессиона��ьная панель управления базами данных.</div>
             <div class="flex items-center space-x-4">
               <button class="hover:text-gray-900 font-medium">Документация</button>
               <button class="hover:text-gray-900 font-medium">Поддержка</button>
@@ -470,8 +470,8 @@ const realDataQualityScore = computed(() => {
 
 const getQualityGrade = (score: number) => {
   if (score >= 90) return { label: 'Отлично', color: 'bg-success-100 text-success-800' }
-  if (score >= 80) return { label: 'Хорошо', color: 'bg-warning-100 text-warning-800' }
-  if (score >= 70) return { label: 'Удовлетвор��тельно', color: 'bg-orange-100 text-orange-800' }
+  if (score >= 80) return { label: 'Хор��шо', color: 'bg-warning-100 text-warning-800' }
+  if (score >= 70) return { label: 'Удовлетворительно', color: 'bg-orange-100 text-orange-800' }
   return { label: 'Требует внимания', color: 'bg-error-100 text-error-800' }
 }
 
@@ -555,22 +555,38 @@ const executeStoredQuery = async (query: any) => {
   }
 }
 
-// Auto-refresh data every 30 seconds
+// Auto-refresh data every 2 minutes (reduced frequency)
 const startAutoRefresh = () => {
   updateInterval = setInterval(async () => {
     try {
-      // Only refresh stats and performance, not queries to avoid rate limiting
+      // Check if we should skip refresh due to rate limiting
+      if (refreshing.value) {
+        console.log('Skipping auto-refresh: manual refresh in progress')
+        return
+      }
+
+      // Only refresh stats occasionally to avoid rate limiting
       const stats = await dbService.getDatabaseStats()
       realStats.value = stats
-      
-      const performance = await dbService.getPerformanceMetrics()
-      realPerformance.value = performance
-      
+
       lastUpdate.value = new Date().toLocaleTimeString('ru-RU')
+      console.log('✅ Auto-refresh completed')
     } catch (error) {
       console.error('Auto-refresh error:', error)
+
+      // If rate limited, skip next few refreshes
+      if (error instanceof Error && (error.message.includes('429') || error.message.includes('Rate limit'))) {
+        console.warn('⏸️ Auto-refresh paused due to rate limiting')
+        // Clear interval and restart with longer delay
+        if (updateInterval) {
+          clearInterval(updateInterval)
+        }
+        setTimeout(() => {
+          startAutoRefresh()
+        }, 120000) // Wait 2 minutes before restarting
+      }
     }
-  }, 30000) // 30 seconds
+  }, 120000) // 2 minutes instead of 30 seconds
 }
 
 onMounted(async () => {
