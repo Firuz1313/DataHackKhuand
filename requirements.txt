@@ -1,0 +1,58 @@
+# Python зависимости для проекта DataBoard Analytics
+
+# Основные библиотеки для работы с данными
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Работа с базами данных  
+psycopg2-binary>=2.9.0
+sqlalchemy>=2.0.0
+
+# Форматы данных
+pyarrow>=12.0.0        # Parquet support
+openpyxl>=3.1.0        # Excel support
+
+# Утилиты
+python-dotenv>=1.0.0   # Environment variables
+pathlib2>=2.3.0        # Path utilities
+
+# Анализ и визуализация (для notebook)
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.15.0
+
+# Jupyter notebook (опционально)
+jupyter>=1.0.0
+ipykernel>=6.25.0
+
+# Качество кода
+black>=23.0.0          # Code formatting
+flake8>=6.0.0          # Linting
+
+# Логирование и мониторинг  
+structlog>=23.0.0      # Structured logging
+
+# Тестирование
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Дополнительные форматы
+xlsxwriter>=3.1.0      # Advanced Excel writing
+h5py>=3.9.0            # HDF5 format
+
+# Работа с API (если нужно)
+requests>=2.31.0
+httpx>=0.24.0
+
+# Параллельная обработка
+joblib>=1.3.0
+
+# Статистика и машинное обучение (опционально)
+scipy>=1.11.0
+scikit-learn>=1.3.0
+
+# Временные ряды
+statsmodels>=0.14.0
+
+# Работа с конфигурацией
+pydantic>=2.0.0
