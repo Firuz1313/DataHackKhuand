@@ -119,14 +119,15 @@ class DatabaseController {
         LIMIT 20
       `)
 
+      const self = this
       const tables = result.rows.map((table, index) => ({
         id: index + 1,
         name: table.name,
         records: Number(
           table.estimated_rows || Math.floor(Math.random() * 10000 + 1000),
         ).toLocaleString('ru-RU'),
-        lastUpdate: this.formatTimeAgo(table.last_updated),
-        status: this.getRandomStatus(),
+        lastUpdate: self.formatTimeAgo(table.last_updated),
+        status: self.getRandomStatus(),
         schema: table.schema,
       }))
 
@@ -205,7 +206,7 @@ class DatabaseController {
       if (!tableName) {
         return res.status(400).json({
           success: false,
-          error: 'Название таблицы обязательно',
+          error: 'Н��звание таблицы обязательно',
         })
       }
 
