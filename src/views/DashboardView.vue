@@ -469,7 +469,7 @@ const realDataQualityScore = computed(() => {
 })
 
 const getQualityGrade = (score: number) => {
-  if (score >= 90) return { label: '��тлично', color: 'bg-success-100 text-success-800' }
+  if (score >= 90) return { label: 'Отлично', color: 'bg-success-100 text-success-800' }
   if (score >= 80) return { label: 'Хорошо', color: 'bg-warning-100 text-warning-800' }
   if (score >= 70) return { label: 'Удовлетворительно', color: 'bg-orange-100 text-orange-800' }
   return { label: 'Требует внимания', color: 'bg-error-100 text-error-800' }
@@ -533,6 +533,8 @@ const loadQueries = async () => {
     realQueries.value = queries
   } catch (error) {
     console.error('❌ Error loading queries:', error)
+    // Don't show error to user for non-critical data
+    realQueries.value = []
   } finally {
     loadingQueries.value = false
   }
@@ -544,6 +546,13 @@ const loadPerformance = async () => {
     realPerformance.value = performance
   } catch (error) {
     console.error('❌ Error loading performance:', error)
+    // Set fallback performance data
+    realPerformance.value = {
+      cpu: { current: 0, average: 0, max: 0 },
+      memory: { current: 0, average: 0, available: 'Недоступно' },
+      io: { current: 0, read: '0 MB/s', write: '0 MB/s' },
+      connections: { active: 0, max: 100, idle: 0 },
+    }
   }
 }
 
