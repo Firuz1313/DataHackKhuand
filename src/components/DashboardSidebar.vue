@@ -91,28 +91,92 @@
       </ul>
     </nav>
 
-    <!-- Database Status -->
-    <div class="absolute bottom-4 left-4 right-4">
+    <!-- Connection Status Cards -->
+    <div class="absolute bottom-4 left-4 right-4 space-y-3">
+      <!-- Neon Connection -->
       <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between mb-2">
           <div class="flex items-center">
-            <div class="w-2 h-2 bg-success-500 rounded-full mr-2"></div>
-            <span class="text-xs text-gray-600">PostgreSQL</span>
+            <div :class="connectionStatus.neon ? 'bg-success-500' : 'bg-error-500'" class="w-2 h-2 rounded-full mr-2"></div>
+            <span class="text-xs font-medium text-gray-600">Neon PostgreSQL</span>
           </div>
-          <span class="text-xs text-gray-500">Подключено</span>
+          <span class="text-xs" :class="connectionStatus.neon ? 'text-success-600' : 'text-error-600'">
+            {{ connectionStatus.neon ? 'Подключено' : 'Ошибка' }}
+          </span>
         </div>
-        <div class="mt-1 text-xs text-gray-500">hackathon@103.246.146.132</div>
+        <div class="text-xs text-gray-500 font-mono">{{ neonEndpoint }}</div>
       </div>
+
+      <!-- Legacy Connection Info -->
+      <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-warning-500 rounded-full mr-2"></div>
+            <span class="text-xs font-medium text-gray-600">Legacy PostgreSQL</span>
+          </div>
+          <span class="text-xs text-warning-600">Только чтение</span>
+        </div>
+        <div class="text-xs text-gray-500">
+          <div class="font-mono">{{ legacyHost }}:{{ legacyPort }}</div>
+          <div>{{ legacyDatabase }}@{{ legacyUser }}</div>
+        </div>
+      </div>
+
+      <!-- Connection Test Button -->
+      <button 
+        @click="testConnections" 
+        :disabled="testing"
+        class="w-full text-center px-3 py-2 text-xs bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors duration-200 disabled:opacity-50"
+      >
+        {{ testing ? '🔄 Проверка...' : '🔍 Проверить подключения' }}
+      </button>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { dbService } from '../services/database'
 
 const activeItem = ref('dashboard')
+const testing = ref(false)
+
+const connectionStatus = reactive({
+  neon: false,
+  legacy: false
+})
+
+// Environment variables
+const neonEndpoint = import.meta.env.VITE_DATABASE_URL?.split('@')[1]?.split('/')[0] || 'ep-polished-butterfly-aebtpaqz-pooler.c-2.us-east-2.aws.neon.tech'
+const legacyHost = import.meta.env.VITE_LEGACY_DB_HOST || '103.246.146.132'
+const legacyPort = import.meta.env.VITE_LEGACY_DB_PORT || '5432'
+const legacyDatabase = import.meta.env.VITE_LEGACY_DB_NAME || 'hackathon'
+const legacyUser = import.meta.env.VITE_LEGACY_DB_USER || 'user_db'
 
 const setActiveItem = (item: string) => {
   activeItem.value = item
 }
+
+const testConnections = async () => {
+  testing.value = true
+  
+  try {
+    // Test Neon connection
+    connectionStatus.neon = await dbService.testConnection()
+    
+    // Legacy connection is not directly testable from frontend due to SSH requirement
+    // So we mark it as informational only
+    connectionStatus.legacy = false
+  } catch (error) {
+    console.error('Connection test failed:', error)
+    connectionStatus.neon = false
+    connectionStatus.legacy = false
+  } finally {
+    testing.value = false
+  }
+}
+
+onMounted(() => {
+  testConnections()
+})
 </script>
