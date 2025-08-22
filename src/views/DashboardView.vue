@@ -57,7 +57,7 @@
                       d="M7 17l9.2-9.2M17 17V8m0 9h-9"
                     />
                   </svg>
-                  {{ Math.abs(kpi.trend) }}%
+                  {{ formatPercentage(Math.abs(kpi.trend)) }}
                 </div>
               </div>
 
@@ -241,15 +241,15 @@
 
             <div class="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div class="text-2xl font-bold text-gray-900">30</div>
+                <div class="text-2xl font-bold text-gray-900">{{ totalQueries }}</div>
                 <div class="text-xs text-gray-600">Всего запросов</div>
               </div>
               <div>
-                <div class="text-2xl font-bold text-success-600">27</div>
+                <div class="text-2xl font-bold text-success-600">{{ successfulQueries }}</div>
                 <div class="text-xs text-gray-600">Успешных</div>
               </div>
               <div>
-                <div class="text-2xl font-bold text-error-600">0</div>
+                <div class="text-2xl font-bold text-error-600">{{ errorQueries }}</div>
                 <div class="text-xs text-gray-600">Ошибок</div>
               </div>
             </div>
@@ -266,7 +266,8 @@
               <div
                 v-for="query in recentQueries"
                 :key="query.id"
-                class="p-3 bg-gray-50 rounded-lg"
+                class="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                @click="executeStoredQuery(query)"
               >
                 <div class="flex items-center justify-between mb-1">
                   <span class="text-xs font-mono text-gray-800 truncate flex-1 mr-2">{{ query.sql }}</span>
@@ -274,7 +275,12 @@
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-xs text-gray-600">{{ query.timeAgo }}</span>
-                  <button class="text-xs text-primary-600 hover:text-primary-700">▶️ Выполнить</button>
+                  <button 
+                    class="text-xs text-primary-600 hover:text-primary-700"
+                    @click.stop="executeStoredQuery(query)"
+                  >
+                    ▶️ Выполнить
+                  </button>
                 </div>
               </div>
             </div>
@@ -465,100 +471,121 @@ const ShieldCheckIcon = {
 const showQueryInterface = ref(false)
 const sqlQuery = ref('')
 const executingQuery = ref(false)
-const dataQualityScore = ref(92)
-const performanceScore = ref(87)
+const dataQualityScore = ref(94.2)
+const performanceScore = ref(87.3)
+const totalQueries = ref(1247)
+const successfulQueries = ref(1220)
+const errorQueries = ref(27)
 
 let updateInterval: number
 
-// Executive KPIs
+// Number formatting utilities
+const formatNumber = (num: number, decimals: number = 1): number => {
+  return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals)
+}
+
+const formatPercentage = (num: number): string => {
+  return formatNumber(num, 1) + '%'
+}
+
+const formatMetric = (num: number): string => {
+  if (num >= 1000000) {
+    return formatNumber(num / 1000000, 1) + 'M'
+  } else if (num >= 1000) {
+    return formatNumber(num / 1000, 1) + 'K'
+  }
+  return formatNumber(num, 0).toString()
+}
+
+// Executive KPIs with realistic professional data
 const executiveKPIs = ref([
   {
     id: 1,
     label: 'Активные подключения',
-    value: '23',
+    value: '28',
     subtitle: 'В сети сейчас',
-    trend: 12.5,
+    trend: 8.2,
     icon: UsersIcon,
     iconBg: 'bg-gradient-to-br from-blue-500 to-blue-600',
     gradient: 'bg-gradient-to-br from-blue-500 to-blue-600',
-    sparkline: [0.3, 0.7, 0.4, 0.9, 0.6, 1.0, 0.8],
+    sparkline: [0.6, 0.7, 0.5, 0.8, 0.7, 0.9, 0.8],
     sparklineColor: 'bg-blue-500',
   },
   {
     id: 2,
     label: 'Запросов в минуту',
-    value: '1,247',
+    value: '1.2K',
     subtitle: 'Средняя нагрузка',
-    trend: 8.3,
+    trend: 5.8,
     icon: DatabaseIcon,
     iconBg: 'bg-gradient-to-br from-green-500 to-green-600',
     gradient: 'bg-gradient-to-br from-green-500 to-green-600',
-    sparkline: [0.5, 0.8, 0.6, 0.9, 1.0, 0.7, 0.9],
+    sparkline: [0.6, 0.8, 0.7, 0.9, 0.8, 0.7, 0.9],
     sparklineColor: 'bg-green-500',
   },
   {
     id: 3,
-    label: 'В��емя отклика',
-    value: '47ms',
+    label: 'Время отклика',
+    value: '42ms',
     subtitle: 'Среднее',
-    trend: -15.2,
+    trend: -12.3,
     icon: ClockIcon,
     iconBg: 'bg-gradient-to-br from-purple-500 to-purple-600',
     gradient: 'bg-gradient-to-br from-purple-500 to-purple-600',
-    sparkline: [1.0, 0.8, 0.6, 0.4, 0.3, 0.2, 0.3],
+    sparkline: [0.8, 0.6, 0.5, 0.4, 0.3, 0.4, 0.3],
     sparklineColor: 'bg-purple-500',
   },
   {
     id: 4,
     label: 'Качество данных',
-    value: '92%',
+    value: '94.2%',
     subtitle: 'Общая оценка',
-    trend: 3.2,
+    trend: 2.1,
     icon: CheckCircleIcon,
     iconBg: 'bg-gradient-to-br from-orange-500 to-orange-600',
     gradient: 'bg-gradient-to-br from-orange-500 to-orange-600',
-    sparkline: [0.85, 0.88, 0.87, 0.90, 0.92, 0.89, 0.92],
+    sparkline: [0.91, 0.92, 0.90, 0.93, 0.94, 0.92, 0.94],
     sparklineColor: 'bg-orange-500',
   },
 ])
 
-// Quality Dimensions
+// Quality Dimensions with realistic scores
 const qualityDimensions = ref([
   {
     name: 'Полнота данных',
-    description: 'Отсутствие пропущенных значений',
-    score: 96,
+    description: 'Отсутствие п��опущенных значений',
+    score: 96.4,
     icon: CheckCircleIcon,
   },
   {
     name: 'Валидность',
     description: 'Соответствие бизнес-правилам',
-    score: 89,
+    score: 91.2,
     icon: ShieldCheckIcon,
   },
   {
     name: 'Консистентность',
     description: 'Единообразие форматов',
-    score: 93,
+    score: 94.8,
     icon: DatabaseIcon,
   },
   {
     name: 'Актуальность',
     description: 'Свежесть данных',
-    score: 85,
+    score: 88.6,
     icon: ClockIcon,
   },
 ])
 
-// Performance Breakdown
+// Performance Breakdown with realistic values
 const performanceBreakdown = ref([
-  { name: 'CPU', value: 23, color: 'bg-blue-500' },
-  { name: 'Память', value: 67, color: 'bg-green-500' },
-  { name: 'I/O', value: 15, color: 'bg-yellow-500' },
-  { name: 'Сеть', value: 34, color: 'bg-purple-500' },
+  { name: 'CPU', value: 28.5, color: 'bg-blue-500' },
+  { name: 'Память', value: 64.2, color: 'bg-green-500' },
+  { name: 'I/O', value: 18.7, color: 'bg-yellow-500' },
+  { name: 'Сеть', value: 31.9, color: 'bg-purple-500' },
 ])
 
-// Time Data for chart
+// Time Data for chart with realistic values
 const timeData = ref([
   { time: '00:00', queries: 45, height: 30 },
   { time: '02:00', queries: 23, height: 15 },
@@ -574,25 +601,147 @@ const timeData = ref([
   { time: '22:00', queries: 43, height: 30 },
 ])
 
-// Recent Queries
+// 20 Professional SQL Queries
 const recentQueries = ref([
   {
     id: 1,
-    sql: 'SELECT * FROM information_schema.tables LIMIT 10',
+    sql: 'SELECT * FROM information_schema.tables WHERE table_schema = \'public\' LIMIT 10',
     duration: '23ms',
     timeAgo: '2 мин назад',
+    result: 'Показать все публичные таблицы в базе данных',
   },
   {
     id: 2,
-    sql: 'SELECT COUNT(*) FROM pg_stat_user_tables',
+    sql: 'SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = \'public\'',
     duration: '45ms',
     timeAgo: '5 мин назад',
+    result: 'Получить структуру всех таблиц',
   },
   {
     id: 3,
-    sql: 'SELECT table_name FROM information_schema.tables',
+    sql: 'SELECT COUNT(*) as total_records FROM pg_stat_user_tables',
     duration: '12ms',
     timeAgo: '8 мин назад',
+    result: 'Подсчитать общее количество записей',
+  },
+  {
+    id: 4,
+    sql: 'SELECT schemaname, tablename, n_live_tup FROM pg_stat_user_tables ORDER BY n_live_tup DESC',
+    duration: '34ms',
+    timeAgo: '12 мин назад',
+    result: 'Показать таблицы по количеству записей',
+  },
+  {
+    id: 5,
+    sql: 'SELECT pg_size_pretty(pg_database_size(current_database())) as database_size',
+    duration: '18ms',
+    timeAgo: '15 мин назад',
+    result: 'Размер текущей базы данных',
+  },
+  {
+    id: 6,
+    sql: 'SELECT datname, usename, application_name, state FROM pg_stat_activity WHERE state = \'active\'',
+    duration: '28ms',
+    timeAgo: '18 мин назад',
+    result: 'Активные подключения к базе данных',
+  },
+  {
+    id: 7,
+    sql: 'SELECT table_name, pg_size_pretty(pg_total_relation_size(quote_ident(table_name))) FROM information_schema.tables WHERE table_schema = \'public\'',
+    duration: '67ms',
+    timeAgo: '22 мин назад',
+    result: 'Размер каждой таблицы в базе данных',
+  },
+  {
+    id: 8,
+    sql: 'SELECT version()',
+    duration: '8ms',
+    timeAgo: '25 мин назад',
+    result: 'Версия PostgreSQL',
+  },
+  {
+    id: 9,
+    sql: 'SELECT current_database(), current_user, inet_server_addr(), inet_server_port()',
+    duration: '15ms',
+    timeAgo: '28 мин назад',
+    result: 'Информация о подключении',
+  },
+  {
+    id: 10,
+    sql: 'SELECT constraint_name, table_name, constraint_type FROM information_schema.table_constraints WHERE table_schema = \'public\'',
+    duration: '52ms',
+    timeAgo: '32 мин назад',
+    result: 'Все ограничения в публичных таблицах',
+  },
+  {
+    id: 11,
+    sql: 'SELECT indexname, tablename, indexdef FROM pg_indexes WHERE schemaname = \'public\'',
+    duration: '41ms',
+    timeAgo: '35 мин назад',
+    result: 'Все индексы в публичных таблицах',
+  },
+  {
+    id: 12,
+    sql: 'SELECT rolname, rolsuper, rolcreaterole, rolcreatedb FROM pg_roles',
+    duration: '19ms',
+    timeAgo: '38 мин назад',
+    result: 'Список всех ролей пользователей',
+  },
+  {
+    id: 13,
+    sql: 'SELECT COUNT(*) as connection_count, usename FROM pg_stat_activity GROUP BY usename',
+    duration: '26ms',
+    timeAgo: '42 мин назад',
+    result: 'Количество подключений по пользователям',
+  },
+  {
+    id: 14,
+    sql: 'SELECT seq_scan, seq_tup_read, idx_scan, idx_tup_fetch FROM pg_stat_user_tables LIMIT 5',
+    duration: '31ms',
+    timeAgo: '45 мин назад',
+    result: 'Статистика сканирования таблиц',
+  },
+  {
+    id: 15,
+    sql: 'SELECT query, calls, total_time, mean_time FROM pg_stat_statements ORDER BY total_time DESC LIMIT 5',
+    duration: '58ms',
+    timeAgo: '48 мин назад',
+    result: 'Самые медленные запросы',
+  },
+  {
+    id: 16,
+    sql: 'SELECT tablename, attname, n_distinct, correlation FROM pg_stats WHERE schemaname = \'public\' LIMIT 10',
+    duration: '73ms',
+    timeAgo: '52 мин назад',
+    result: 'Статистика по столбцам таблиц',
+  },
+  {
+    id: 17,
+    sql: 'SELECT * FROM pg_settings WHERE category = \'Resource Usage\' LIMIT 5',
+    duration: '37ms',
+    timeAgo: '55 мин назад',
+    result: 'Настройки использования ресурсов',
+  },
+  {
+    id: 18,
+    sql: 'SELECT buffers_checkpoint, buffers_clean, buffers_backend FROM pg_stat_bgwriter',
+    duration: '22ms',
+    timeAgo: '58 мин назад',
+    result: 'Статистика фонового записывателя',
+  },
+  {
+    id: 19,
+    sql: 'SELECT current_timestamp, timezone(\'UTC\', current_timestamp) as utc_time',
+    duration: '11ms',
+    timeAgo: '1 час назад',
+    result: 'Текущее время сервера',
+  },
+  {
+    id: 20,
+    sql: 'SELECT pg_is_in_recovery(), pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn()',
+    duration: '16ms',
+    timeAgo: '1 час назад',
+    result: 'Статус репликации',
   },
 ])
 
@@ -703,28 +852,87 @@ const executeQuery = async () => {
   }
 }
 
+const executeStoredQuery = async (query: any) => {
+  console.log('Executing stored query:', query.sql)
+  console.log('Expected result:', query.result)
+  
+  try {
+    const result = await dbService.executeQuery(query.sql)
+    console.log('Query result:', result)
+    
+    alert(
+      `✅ Запрос выполнен: ${query.result}\n\nРезультатов: ${result.rowCount || result.rows?.length || 0}\nВремя выполнения: ${query.duration}\n\nПодробности в консоли браузера (F12 → Console)`
+    )
+  } catch (error) {
+    console.error('Query execution error:', error)
+    alert(
+      `❌ Ошибка выполнения запроса:\n${query.sql}\n\n${error instanceof Error ? error.message : 'Неизвестная ошибка'}`
+    )
+  }
+}
+
 const updateRealTimeData = () => {
-  // Update executive KPIs
-  executiveKPIs.value.forEach((kpi) => {
-    const variation = (Math.random() - 0.5) * 0.1
-    kpi.trend = Math.max(-50, Math.min(50, kpi.trend + variation))
+  // Update executive KPIs with realistic variations
+  executiveKPIs.value.forEach((kpi, index) => {
+    const variation = (Math.random() - 0.5) * 0.5 // Smaller, more realistic variations
+    kpi.trend = formatNumber(Math.max(-20, Math.min(20, kpi.trend + variation)), 1)
+    
+    // Update specific KPI values with realistic data
+    switch (index) {
+      case 0: // Active connections
+        const currentConnections = parseInt(kpi.value)
+        const newConnections = Math.max(15, Math.min(50, currentConnections + Math.floor((Math.random() - 0.5) * 6)))
+        kpi.value = newConnections.toString()
+        break
+      case 1: // Queries per minute
+        const currentQueries = parseInt(kpi.value.replace('K', '').replace(',', '')) * (kpi.value.includes('K') ? 1000 : 1)
+        const newQueries = Math.max(800, Math.min(2000, currentQueries + Math.floor((Math.random() - 0.5) * 100)))
+        kpi.value = formatMetric(newQueries)
+        break
+      case 2: // Response time
+        const currentTime = parseInt(kpi.value.replace('ms', ''))
+        const newTime = Math.max(25, Math.min(120, currentTime + Math.floor((Math.random() - 0.5) * 10)))
+        kpi.value = newTime + 'ms'
+        break
+      case 3: // Data quality
+        const currentQuality = parseFloat(kpi.value.replace('%', ''))
+        const newQuality = Math.max(85, Math.min(98, currentQuality + (Math.random() - 0.5) * 2))
+        kpi.value = formatNumber(newQuality, 1) + '%'
+        break
+    }
   })
 
-  // Update performance and quality scores
-  performanceScore.value = Math.max(
-    60,
-    Math.min(100, performanceScore.value + (Math.random() - 0.5) * 5),
+  // Update performance and quality scores with proper formatting
+  performanceScore.value = formatNumber(
+    Math.max(60, Math.min(100, performanceScore.value + (Math.random() - 0.5) * 3)),
+    1
   )
   
-  dataQualityScore.value = Math.max(
-    70,
-    Math.min(100, dataQualityScore.value + (Math.random() - 0.5) * 3),
+  dataQualityScore.value = formatNumber(
+    Math.max(88, Math.min(98, dataQualityScore.value + (Math.random() - 0.5) * 1.5)),
+    1
   )
 
-  // Update quality dimensions
+  // Update quality dimensions with proper formatting
   qualityDimensions.value.forEach((dimension) => {
-    dimension.score = Math.max(70, Math.min(100, dimension.score + (Math.random() - 0.5) * 4))
+    dimension.score = formatNumber(
+      Math.max(80, Math.min(100, dimension.score + (Math.random() - 0.5) * 2)),
+      1
+    )
   })
+  
+  // Update performance breakdown with realistic values
+  performanceBreakdown.value.forEach((metric) => {
+    metric.value = formatNumber(
+      Math.max(10, Math.min(90, metric.value + (Math.random() - 0.5) * 3)),
+      1
+    )
+  })
+  
+  // Update query statistics
+  totalQueries.value = Math.max(1000, Math.min(2000, totalQueries.value + Math.floor((Math.random() - 0.5) * 20)))
+  successfulQueries.value = Math.floor(totalQueries.value * (0.95 + Math.random() * 0.04))
+  errorQueries.value = totalQueries.value - successfulQueries.value
 }
 
 onMounted(() => {
