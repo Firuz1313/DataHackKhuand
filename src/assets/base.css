@@ -2,89 +2,117 @@
 @tailwind components;
 @tailwind utilities;
 
-/* color palette from <https://github.com/vuejs/theme> */
+/* Modern dashboard color scheme */
 :root {
-  --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
-  --vt-c-white-mute: #f2f2f2;
-
-  --vt-c-black: #181818;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
-
-  --vt-c-indigo: #2c3e50;
-
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
-
-  --vt-c-text-light-1: var(--vt-c-indigo);
-  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
-  --vt-c-text-dark-1: var(--vt-c-white);
-  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
-}
-
-/* semantic color variables for this project */
-:root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
-
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
-
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
-
-  --section-gap: 160px;
+  /* Background colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  
+  /* Text colors */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  
+  /* Border colors */
+  --border-light: #e2e8f0;
+  --border-medium: #cbd5e1;
+  
+  /* Brand colors */
+  --brand-primary: #0ea5e9;
+  --brand-secondary: #0284c7;
+  
+  /* Status colors */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #06b6d4;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
-
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
-
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    
+    --border-light: #334155;
+    --border-medium: #475569;
   }
 }
 
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
   margin: 0;
-  font-weight: normal;
+  padding: 0;
 }
 
 body {
-  min-height: 100vh;
-  color: var(--color-text);
-  background: var(--color-background);
-  transition:
-    color 0.5s,
-    background-color 0.5s;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   line-height: 1.6;
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-    sans-serif;
-  font-size: 15px;
-  text-rendering: optimizeLegibility;
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  font-size: 14px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Dashboard specific styles */
+.card {
+  @apply bg-white rounded-lg shadow-card border border-gray-200 transition-shadow duration-200;
+}
+
+.card:hover {
+  @apply shadow-card-hover;
+}
+
+.btn-primary {
+  @apply bg-primary-500 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+}
+
+.input-field {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors duration-200;
+}
+
+/* Status badges */
+.badge-success {
+  @apply bg-success-100 text-success-700 px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.badge-warning {
+  @apply bg-warning-100 text-warning-700 px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.badge-error {
+  @apply bg-error-100 text-error-700 px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.badge-info {
+  @apply bg-info-100 text-info-700 px-2 py-1 rounded-full text-xs font-medium;
 }
