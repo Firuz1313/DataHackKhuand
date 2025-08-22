@@ -51,7 +51,7 @@
         <!-- Query Results Section -->
         <div
           v-if="queryResults || queryError"
-          class="bg-white rounded-lg shadow-card border border-gray-200 mb-6"
+          class="query-results bg-white rounded-lg shadow-card border border-gray-200 mb-6"
         >
           <!-- Success Results -->
           <div v-if="queryResults && !queryError" class="p-6">
