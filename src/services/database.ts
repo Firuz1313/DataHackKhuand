@@ -16,7 +16,7 @@ export interface TableInfo {
   name: string
   records: string
   lastUpdate: string
-  status: 'Активна' | 'Обновляется' | 'Ошибка'
+  status: 'Ак��ивна' | 'Обновляется' | 'Ошибка'
   schema?: string
 }
 
@@ -56,6 +56,7 @@ interface RequestQueue {
   reject: (error: any) => void
   endpoint: string
   options: RequestInit
+  timestamp: number
 }
 
 class DatabaseService {
@@ -65,10 +66,14 @@ class DatabaseService {
   private requestQueue: RequestQueue[] = []
   private isProcessingQueue = false
   private lastRequestTime = 0
-  private readonly MIN_REQUEST_INTERVAL = 1000 // Minimum 1 second between requests
-  private readonly MAX_RETRIES = 2
-  private readonly RETRY_DELAYS = [2000, 5000] // Longer delays
-  private readonly DEFAULT_CACHE_TTL = 60000 // 60 seconds cache
+  private rateLimitedUntil = 0 // Circuit breaker for 429 errors
+  private consecutiveErrors = 0
+  private readonly MIN_REQUEST_INTERVAL = 3000 // Minimum 3 seconds between requests
+  private readonly MAX_RETRIES = 1 // Only retry once
+  private readonly RETRY_DELAYS = [5000] // 5 second delay only
+  private readonly DEFAULT_CACHE_TTL = 300000 // 5 minutes cache
+  private readonly RATE_LIMIT_BACKOFF = 30000 // 30 seconds backoff on 429
+  private readonly MAX_QUEUE_SIZE = 5 // Limit queue size
 
   constructor() {
     // Use relative URLs for API calls - Vite proxy will handle routing to backend
