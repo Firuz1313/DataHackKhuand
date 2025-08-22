@@ -233,30 +233,30 @@ const loading = ref(false)
 const lastUpdate = ref(new Date().toLocaleTimeString())
 
 const performance = reactive({
-  cpu: { current: 23, average: 18, max: 45 },
-  memory: { current: 67, average: 62, available: '2.1 GB' },
-  io: { current: 15, read: '45 MB/s', write: '12 MB/s' }
+  cpu: { current: 0, average: 0, max: 0 },
+  memory: { current: 0, average: 0, available: '0 GB' },
+  io: { current: 0, read: '0 MB/s', write: '0 MB/s' }
 })
 
 const weeklyActivity = ref([
-  { name: 'Пн', queries: 45 },
-  { name: 'Вт', queries: 67 },
-  { name: 'Ср', queries: 89 },
-  { name: 'Чт', queries: 123 },
-  { name: 'Пт', queries: 156 },
-  { name: 'Сб', queries: 78 },
-  { name: 'Вс', queries: 34 }
+  { name: 'Пн', queries: 0 },
+  { name: 'Вт', queries: 0 },
+  { name: 'Ср', queries: 0 },
+  { name: 'Чт', queries: 0 },
+  { name: 'Пт', queries: 0 },
+  { name: 'Сб', queries: 0 },
+  { name: 'Вс', queries: 0 }
 ])
 
-const totalQueries = ref(592)
-const successfulQueries = ref(567)
-const errorQueries = ref(25)
+const totalQueries = ref(0)
+const successfulQueries = ref(0)
+const errorQueries = ref(0)
 
 const realTimeStats = reactive({
-  activeConnections: 12,
-  queriesPerMinute: 45,
-  avgResponseTime: 124,
-  cacheSize: '2.4 GB'
+  activeConnections: 0,
+  queriesPerMinute: 0,
+  avgResponseTime: 0,
+  cacheSize: '0 GB'
 })
 
 const healthChecks = ref([
