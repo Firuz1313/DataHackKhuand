@@ -38,4 +38,13 @@ router.get('/monitoring/realtime', databaseController.getRealTimeStats)
 // Get weekly activity analytics
 router.get('/analytics/weekly', databaseController.getWeeklyActivity)
 
+// Get table indexes
+router.get('/tables/:tableName/indexes', databaseController.getTableIndexes)
+
+// Get table foreign keys
+router.get('/tables/:tableName/foreign-keys', databaseController.getTableForeignKeys)
+
+// Get database relationships and data model
+router.get('/data-model', databaseController.getDatabaseRelationships)
+
 module.exports = router
