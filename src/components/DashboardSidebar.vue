@@ -20,11 +20,10 @@
     <nav class="mt-6 px-4">
       <ul class="space-y-2">
         <li>
-          <a
-            href="#"
-            @click="setActiveItem('dashboard')"
+          <router-link
+            to="/"
             :class="
-              activeItem === 'dashboard'
+              $route.name === 'dashboard'
                 ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
                 : 'text-gray-600 hover:bg-gray-50'
             "
@@ -45,15 +44,14 @@
               />
             </svg>
             Dashboard
-          </a>
+          </router-link>
         </li>
 
         <li>
-          <a
-            href="#"
-            @click="setActiveItem('database')"
+          <router-link
+            to="/database"
             :class="
-              activeItem === 'database'
+              $route.name === 'database'
                 ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
                 : 'text-gray-600 hover:bg-gray-50'
             "
@@ -68,15 +66,14 @@
               />
             </svg>
             База данных
-          </a>
+          </router-link>
         </li>
 
         <li>
-          <a
-            href="#"
-            @click="setActiveItem('tables')"
+          <router-link
+            to="/tables"
             :class="
-              activeItem === 'tables'
+              $route.name === 'tables'
                 ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
                 : 'text-gray-600 hover:bg-gray-50'
             "
@@ -91,15 +88,14 @@
               />
             </svg>
             Таблицы
-          </a>
+          </router-link>
         </li>
 
         <li>
-          <a
-            href="#"
-            @click="setActiveItem('queries')"
+          <router-link
+            to="/queries"
             :class="
-              activeItem === 'queries'
+              $route.name === 'queries'
                 ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
                 : 'text-gray-600 hover:bg-gray-50'
             "
@@ -114,15 +110,14 @@
               />
             </svg>
             Запросы
-          </a>
+          </router-link>
         </li>
 
         <li>
-          <a
-            href="#"
-            @click="setActiveItem('analytics')"
+          <router-link
+            to="/analytics"
             :class="
-              activeItem === 'analytics'
+              $route.name === 'analytics'
                 ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
                 : 'text-gray-600 hover:bg-gray-50'
             "
@@ -137,7 +132,7 @@
               />
             </svg>
             Аналитика
-          </a>
+          </router-link>
         </li>
       </ul>
 
@@ -147,11 +142,10 @@
       <!-- Settings Section -->
       <ul class="space-y-2">
         <li>
-          <a
-            href="#"
-            @click="setActiveItem('settings')"
+          <router-link
+            to="/settings"
             :class="
-              activeItem === 'settings'
+              $route.name === 'settings'
                 ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
                 : 'text-gray-600 hover:bg-gray-50'
             "
@@ -172,7 +166,7 @@
               />
             </svg>
             Настройки
-          </a>
+          </router-link>
         </li>
       </ul>
     </nav>
