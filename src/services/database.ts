@@ -56,6 +56,7 @@ interface RequestQueue {
   reject: (error: any) => void
   endpoint: string
   options: RequestInit
+  timestamp: number
 }
 
 class DatabaseService {
@@ -65,10 +66,14 @@ class DatabaseService {
   private requestQueue: RequestQueue[] = []
   private isProcessingQueue = false
   private lastRequestTime = 0
-  private readonly MIN_REQUEST_INTERVAL = 200 // Minimum 200ms between requests
-  private readonly MAX_RETRIES = 3
-  private readonly RETRY_DELAYS = [1000, 2000, 4000] // Exponential backoff
-  private readonly DEFAULT_CACHE_TTL = 30000 // 30 seconds
+  private rateLimitedUntil = 0 // Circuit breaker for 429 errors
+  private consecutiveErrors = 0
+  private readonly MIN_REQUEST_INTERVAL = 3000 // Minimum 3 seconds between requests
+  private readonly MAX_RETRIES = 1 // Only retry once
+  private readonly RETRY_DELAYS = [5000] // 5 second delay only
+  private readonly DEFAULT_CACHE_TTL = 300000 // 5 minutes cache
+  private readonly RATE_LIMIT_BACKOFF = 30000 // 30 seconds backoff on 429
+  private readonly MAX_QUEUE_SIZE = 5 // Limit queue size
 
   constructor() {
     // Use relative URLs for API calls - Vite proxy will handle routing to backend
@@ -113,6 +118,16 @@ class DatabaseService {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
+  private isRateLimited(): boolean {
+    return Date.now() < this.rateLimitedUntil
+  }
+
+  private handleRateLimit(): void {
+    this.rateLimitedUntil = Date.now() + this.RATE_LIMIT_BACKOFF
+    this.consecutiveErrors++
+    console.warn(`🚫 Rate limited! Backing off for ${this.RATE_LIMIT_BACKOFF / 1000} seconds`)
+  }
+
   private async processRequestQueue(): Promise<void> {
     if (this.isProcessingQueue || this.requestQueue.length === 0) {
       return
@@ -121,6 +136,12 @@ class DatabaseService {
     this.isProcessingQueue = true
 
     while (this.requestQueue.length > 0) {
+      // Check if we're rate limited
+      if (this.isRateLimited()) {
+        console.warn('⏸️ Queue processing paused due to rate limiting')
+        break
+      }
+
       const now = Date.now()
       const timeSinceLastRequest = now - this.lastRequestTime
 
@@ -130,11 +151,26 @@ class DatabaseService {
 
       const request = this.requestQueue.shift()
       if (request) {
+        // Check if request is too old (older than 30 seconds)
+        if (now - request.timestamp > 30000) {
+          request.reject(new Error('Request timeout - too long in queue'))
+          continue
+        }
+
         try {
           this.lastRequestTime = Date.now()
           const result = await this.makeDirectApiCall(request.endpoint, request.options)
           request.resolve(result)
+          this.consecutiveErrors = 0 // Reset error count on success
         } catch (error) {
+          if (error instanceof Error && error.message.includes('429')) {
+            this.handleRateLimit()
+            // Reject all remaining requests to prevent flooding
+            this.requestQueue.forEach((req) =>
+              req.reject(new Error('Rate limited - service temporarily unavailable')),
+            )
+            this.requestQueue.length = 0
+          }
           request.reject(error)
         }
       }
@@ -172,6 +208,16 @@ class DatabaseService {
   }
 
   private async apiCallWithRetry<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    // Check circuit breaker first
+    if (this.isRateLimited()) {
+      throw new Error('Service temporarily unavailable due to rate limiting')
+    }
+
+    // Check queue size
+    if (this.requestQueue.length >= this.MAX_QUEUE_SIZE) {
+      throw new Error('Too many pending requests - try again later')
+    }
+
     let lastError: Error = new Error('Unknown error')
 
     for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
@@ -184,29 +230,34 @@ class DatabaseService {
               reject,
               endpoint,
               options,
+              timestamp: Date.now(),
             })
             this.processRequestQueue()
           })
         } else {
-          // Retry attempts - wait before retrying
-          const delay = this.RETRY_DELAYS[attempt - 1] || 4000
+          // Single retry attempt with longer delay
+          const delay = this.RETRY_DELAYS[0]
           console.log(`⏳ Retry attempt ${attempt} after ${delay}ms for ${endpoint}`)
           await this.wait(delay)
+
+          // Check circuit breaker again before retry
+          if (this.isRateLimited()) {
+            throw new Error('Service temporarily unavailable due to rate limiting')
+          }
+
           return await this.makeDirectApiCall<T>(endpoint, options)
         }
       } catch (error) {
         lastError = error as Error
 
-        // If it's a 429 error, continue retrying
-        if (lastError.message.includes('429') && attempt < this.MAX_RETRIES) {
-          console.log(
-            `🔄 Rate limited (429), retrying ${endpoint} in ${this.RETRY_DELAYS[attempt] || 4000}ms`,
-          )
-          continue
+        // If it's a 429 error, stop retrying immediately
+        if (lastError.message.includes('429')) {
+          this.handleRateLimit()
+          throw new Error('Rate limit exceeded - please wait before making more requests')
         }
 
-        // If it's not a 429 or we've exhausted retries, break
-        if (!lastError.message.includes('429')) {
+        // For other errors, break after first retry
+        if (attempt >= this.MAX_RETRIES) {
           break
         }
       }
@@ -215,6 +266,8 @@ class DatabaseService {
     console.error('❌ Ошибка API после всех попыток:', lastError)
     throw lastError
   }
+
+  private pendingRequests = new Map<string, Promise<any>>()
 
   private async apiCall<T>(
     endpoint: string,
@@ -230,17 +283,37 @@ class DatabaseService {
           console.log(`📋 Cache hit for ${endpoint}`)
           return cachedData
         }
+
+        // Check if the same request is already in progress
+        if (this.pendingRequests.has(cacheKey)) {
+          console.log(`⏳ Request already in progress for ${endpoint}`)
+          return await this.pendingRequests.get(cacheKey)
+        }
       }
 
-      const result = await this.apiCallWithRetry<T>(endpoint, options)
+      const cacheKey = this.getCacheKey(endpoint, options)
 
-      // Cache successful GET requests
+      // Create the request promise
+      const requestPromise = this.apiCallWithRetry<T>(endpoint, options)
+
+      // Store pending request for GET requests to prevent duplicates
       if ((!options.method || options.method === 'GET') && !options.body) {
-        const cacheKey = this.getCacheKey(endpoint, options)
-        this.setCachedData(cacheKey, result, cacheTtl)
+        this.pendingRequests.set(cacheKey, requestPromise)
       }
 
-      return result
+      try {
+        const result = await requestPromise
+
+        // Cache successful GET requests
+        if ((!options.method || options.method === 'GET') && !options.body) {
+          this.setCachedData(cacheKey, result, cacheTtl || this.DEFAULT_CACHE_TTL)
+        }
+
+        return result
+      } finally {
+        // Clean up pending request
+        this.pendingRequests.delete(cacheKey)
+      }
     } catch (error) {
       console.error('❌ Ошибка API:', error)
       if (error instanceof Error) {
@@ -455,6 +528,140 @@ class DatabaseService {
       }>('/database/analytics/weekly', {}, 300000) // 5min cache for analytics
     } catch (error) {
       console.error('Failed to get weekly activity:', error)
+      throw error
+    }
+  }
+
+  // Get table indexes
+  async getTableIndexes(tableName: string): Promise<{
+    tableName: string
+    indexes: Array<{
+      index_name: string
+      index_definition: string
+      index_type: 'PRIMARY' | 'UNIQUE' | 'REGULAR'
+      index_size: string
+      index_method: string
+      columns: string
+    }>
+  }> {
+    try {
+      return await this.apiCall<{
+        tableName: string
+        indexes: Array<{
+          index_name: string
+          index_definition: string
+          index_type: 'PRIMARY' | 'UNIQUE' | 'REGULAR'
+          index_size: string
+          index_method: string
+          columns: string
+        }>
+      }>(`/database/tables/${tableName}/indexes`, {}, 300000) // 5min cache for indexes
+    } catch (error) {
+      console.error('Failed to get table indexes:', error)
+      throw error
+    }
+  }
+
+  // Get table foreign keys
+  async getTableForeignKeys(tableName: string): Promise<{
+    tableName: string
+    outgoingForeignKeys: Array<{
+      constraint_name: string
+      column_name: string
+      foreign_table_name: string
+      foreign_column_name: string
+      update_rule: string
+      delete_rule: string
+    }>
+    incomingForeignKeys: Array<{
+      constraint_name: string
+      referencing_table_name: string
+      referencing_column_name: string
+      update_rule: string
+      delete_rule: string
+    }>
+  }> {
+    try {
+      return await this.apiCall<{
+        tableName: string
+        outgoingForeignKeys: Array<{
+          constraint_name: string
+          column_name: string
+          foreign_table_name: string
+          foreign_column_name: string
+          update_rule: string
+          delete_rule: string
+        }>
+        incomingForeignKeys: Array<{
+          constraint_name: string
+          referencing_table_name: string
+          referencing_column_name: string
+          update_rule: string
+          delete_rule: string
+        }>
+      }>(`/database/tables/${tableName}/foreign-keys`, {}, 300000) // 5min cache for foreign keys
+    } catch (error) {
+      console.error('Failed to get table foreign keys:', error)
+      throw error
+    }
+  }
+
+  // Get database data model and relationships
+  async getDatabaseDataModel(): Promise<{
+    tables: Array<{
+      name: string
+      schema: string
+      comment: string | null
+      columns: Array<{
+        column_name: string
+        data_type: string
+        is_nullable: string
+        column_default: string | null
+        is_primary_key: boolean
+      }>
+      position: { x: number; y: number }
+    }>
+    relationships: Array<{
+      id: string
+      sourceTable: string
+      sourceColumn: string
+      targetTable: string
+      targetColumn: string
+      constraintName: string
+      updateRule: string
+      deleteRule: string
+      type: string
+    }>
+  }> {
+    try {
+      return await this.apiCall<{
+        tables: Array<{
+          name: string
+          schema: string
+          comment: string | null
+          columns: Array<{
+            column_name: string
+            data_type: string
+            is_nullable: string
+            column_default: string | null
+            is_primary_key: boolean
+          }>
+          position: { x: number; y: number }
+        }>
+        relationships: Array<{
+          id: string
+          sourceTable: string
+          sourceColumn: string
+          targetTable: string
+          targetColumn: string
+          constraintName: string
+          updateRule: string
+          deleteRule: string
+          type: string
+        }>
+      }>('/database/data-model', {}, 600000) // 10min cache for data model
+    } catch (error) {
+      console.error('Failed to get database data model:', error)
       throw error
     }
   }

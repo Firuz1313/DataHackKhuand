@@ -17,9 +17,9 @@
               clip-rule="evenodd"
             />
           </svg>
-          <span class="text-error-700 font-medium">Ошибка подключения к базе данных</span>
+          <span class="text-error-800 font-semibold">Ошибка подключения к базе данных</span>
         </div>
-        <p class="text-error-600 text-sm mt-1">{{ error }}</p>
+        <p class="text-error-700 text-sm font-medium mt-1">{{ error }}</p>
         <button @click="fetchStats" class="mt-2 btn-primary text-sm">Повторить</button>
       </div>
     </div>
@@ -30,9 +30,9 @@
       <div class="card p-6 animate-fade-in">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-600">Всего таблиц</p>
+            <p class="text-sm font-semibold text-gray-700">Всего таблиц</p>
             <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalTables }}</p>
-            <p class="text-sm text-success-600 mt-1">
+            <p class="text-sm text-success-700 font-medium mt-1">
               <span class="inline-flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -67,11 +67,11 @@
       <div class="card p-6 animate-fade-in" style="animation-delay: 0.1s">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-600">Всего записей</p>
+            <p class="text-sm font-semibold text-gray-700">Всего записей</p>
             <p class="text-3xl font-bold text-gray-900 mt-2">
               {{ formatNumber(stats.totalRecords) }}
             </p>
-            <p class="text-sm text-success-600 mt-1">
+            <p class="text-sm text-success-700 font-medium mt-1">
               <span class="inline-flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -106,9 +106,9 @@
       <div class="card p-6 animate-fade-in" style="animation-delay: 0.2s">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-600">Размер БД</p>
+            <p class="text-sm font-semibold text-gray-700">Размер БД</p>
             <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.databaseSize }}</p>
-            <p class="text-sm text-warning-600 mt-1">
+            <p class="text-sm text-warning-700 font-medium mt-1">
               <span class="inline-flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -143,9 +143,9 @@
       <div class="card p-6 animate-fade-in" style="animation-delay: 0.3s">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-600">Активные подключения</p>
+            <p class="text-sm font-semibold text-gray-700">Активные подключения</p>
             <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.activeConnections }}</p>
-            <p class="text-sm text-info-600 mt-1">
+            <p class="text-sm text-info-700 font-medium mt-1">
               <span class="inline-flex items-center">
                 <div class="w-2 h-2 bg-success-500 rounded-full mr-2 animate-pulse"></div>
                 Максимум: {{ stats.maxConnections }}
@@ -203,21 +203,55 @@ const fetchStats = async () => {
     stats.value = dbStats
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка'
-    error.value = errorMessage.includes('429')
-      ? 'Слишком много запросов. Подождите немного.'
-      : errorMessage
+
+    if (errorMessage.includes('429') || errorMessage.includes('Rate limit')) {
+      error.value = 'Слишком много запросов. Данные будут загружены позже.'
+      // Set fallback data instead of showing error
+      stats.value = {
+        totalTables: 0,
+        totalRecords: 0,
+        databaseSize: 'Загрузка...',
+        activeConnections: 0,
+        newTables: 0,
+        newRecords: 0,
+        sizeGrowth: '0 MB',
+        maxConnections: 100,
+      }
+    } else if (errorMessage.includes('temporarily unavailable')) {
+      error.value = 'Сервис временно недоступен. Повторите попытку позже.'
+    } else {
+      error.value = errorMessage
+    }
+
     console.error('Error fetching database stats:', err)
   } finally {
     loading.value = false
   }
 }
 
-// Delay API calls to prevent rate limiting when multiple components mount
+// Delay API calls significantly to prevent rate limiting
 const delayedFetch = async () => {
-  // Add random delay between 100-600ms to stagger API calls
-  const delay = 100 + Math.random() * 500
+  // Add longer delay between 1-3 seconds to stagger API calls
+  const delay = 1000 + Math.random() * 2000
   await new Promise((resolve) => setTimeout(resolve, delay))
-  await fetchStats()
+
+  try {
+    await fetchStats()
+  } catch (err) {
+    console.warn('Skipped stats fetch due to rate limiting')
+    // Show placeholder data instead of error
+    loading.value = false
+    stats.value = {
+      totalTables: 0,
+      totalRecords: 0,
+      databaseSize: 'Недоступно',
+      activeConnections: 0,
+      newTables: 0,
+      newRecords: 0,
+      sizeGrowth: '0 MB',
+      maxConnections: 100,
+    }
+  }
 }
 
 onMounted(() => {

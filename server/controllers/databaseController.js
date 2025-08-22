@@ -2,7 +2,7 @@ const { query, getConnectionStatus } = require('../config/database')
 
 // Helper functions
 function formatTimeAgo(date) {
-  if (!date) return 'неизвестно'
+  if (!date) return 'неизв��стно'
 
   const now = new Date()
   const diffMs = now - new Date(date)
@@ -84,7 +84,7 @@ class DatabaseController {
           totalRecords = totalTables * 1000
         }
       } catch (err) {
-        console.warn('⚠️ Не удалось получить количество записей:', err.message)
+        console.warn('⚠️ Не уда��ось получить количество записей:', err.message)
         totalRecords = totalTables * 1000
       }
 
@@ -387,7 +387,7 @@ class DatabaseController {
   // Get database performance metrics
   async getPerformanceMetrics(req, res) {
     try {
-      console.log('📈 Получение метрик производительности...')
+      console.log('📈 Получение м��трик производительности...')
 
       // Mock performance data (in real implementation, this would query system tables)
       const metrics = {
@@ -497,6 +497,285 @@ class DatabaseController {
       res.status(500).json({
         success: false,
         error: 'Ошибка получения недельной активности',
+        details: error.message,
+      })
+    }
+  }
+
+  // Get table indexes
+  async getTableIndexes(req, res) {
+    try {
+      const { tableName } = req.params
+
+      if (!tableName) {
+        return res.status(400).json({
+          success: false,
+          error: 'Название таблицы обязательно',
+        })
+      }
+
+      console.log(`🔍 Получение индексов для таблицы: ${tableName}`)
+
+      const result = await query(
+        `
+        SELECT
+          i.indexname as index_name,
+          i.indexdef as index_definition,
+          CASE WHEN i.indexname ~ '_pkey$' THEN 'PRIMARY'
+               WHEN i.indexdef LIKE '%UNIQUE%' THEN 'UNIQUE'
+               ELSE 'REGULAR'
+          END as index_type,
+          pg_size_pretty(pg_relation_size(c.oid)) as index_size,
+          i.tablename,
+          CASE WHEN i.indexdef LIKE '%btree%' THEN 'BTREE'
+               WHEN i.indexdef LIKE '%hash%' THEN 'HASH'
+               WHEN i.indexdef LIKE '%gin%' THEN 'GIN'
+               WHEN i.indexdef LIKE '%gist%' THEN 'GIST'
+               ELSE 'BTREE'
+          END as index_method,
+          -- Extract column names from index definition
+          REGEXP_REPLACE(
+            REGEXP_REPLACE(i.indexdef, '.*\\((.*?)\\).*', '\\1'),
+            '\\s+', ' ', 'g'
+          ) as columns
+        FROM pg_indexes i
+        LEFT JOIN pg_class c ON c.relname = i.indexname
+        WHERE i.tablename = $1
+        AND i.schemaname = 'public'
+        ORDER BY
+          CASE WHEN i.indexname ~ '_pkey$' THEN 1
+               WHEN i.indexdef LIKE '%UNIQUE%' THEN 2
+               ELSE 3
+          END,
+          i.indexname
+      `,
+        [tableName],
+      )
+
+      console.log(`✅ Найдено ${result.rows.length} индексов для таблицы ${tableName}`)
+
+      res.json({
+        success: true,
+        data: {
+          tableName,
+          indexes: result.rows,
+        },
+      })
+    } catch (error) {
+      console.error('❌ Ошибка получения индексов:', error)
+      res.status(500).json({
+        success: false,
+        error: 'Ошибка получения индексов таблицы',
+        details: error.message,
+      })
+    }
+  }
+
+  // Get table foreign keys
+  async getTableForeignKeys(req, res) {
+    try {
+      const { tableName } = req.params
+
+      if (!tableName) {
+        return res.status(400).json({
+          success: false,
+          error: 'Наз��ание таблицы обязательно',
+        })
+      }
+
+      console.log(`🔗 Получение внешних ключей для таблицы: ${tableName}`)
+
+      const result = await query(
+        `
+        SELECT
+          tc.constraint_name,
+          kcu.column_name,
+          ccu.table_name AS foreign_table_name,
+          ccu.column_name AS foreign_column_name,
+          rc.update_rule,
+          rc.delete_rule,
+          tc.table_name as source_table
+        FROM information_schema.table_constraints AS tc
+        JOIN information_schema.key_column_usage AS kcu
+          ON tc.constraint_name = kcu.constraint_name
+          AND tc.table_schema = kcu.table_schema
+        JOIN information_schema.constraint_column_usage AS ccu
+          ON ccu.constraint_name = tc.constraint_name
+          AND ccu.table_schema = tc.table_schema
+        JOIN information_schema.referential_constraints AS rc
+          ON tc.constraint_name = rc.constraint_name
+          AND tc.table_schema = rc.constraint_schema
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+        AND tc.table_name = $1
+        AND tc.table_schema = 'public'
+        ORDER BY tc.constraint_name
+      `,
+        [tableName],
+      )
+
+      // Also get foreign keys that reference this table
+      const referencingResult = await query(
+        `
+        SELECT
+          tc.constraint_name,
+          kcu.column_name,
+          tc.table_name AS referencing_table_name,
+          kcu.column_name AS referencing_column_name,
+          rc.update_rule,
+          rc.delete_rule,
+          ccu.table_name as target_table
+        FROM information_schema.table_constraints AS tc
+        JOIN information_schema.key_column_usage AS kcu
+          ON tc.constraint_name = kcu.constraint_name
+          AND tc.table_schema = kcu.table_schema
+        JOIN information_schema.constraint_column_usage AS ccu
+          ON ccu.constraint_name = tc.constraint_name
+          AND ccu.table_schema = tc.table_schema
+        JOIN information_schema.referential_constraints AS rc
+          ON tc.constraint_name = rc.constraint_name
+          AND tc.table_schema = rc.constraint_schema
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+        AND ccu.table_name = $1
+        AND tc.table_schema = 'public'
+        ORDER BY tc.constraint_name
+      `,
+        [tableName],
+      )
+
+      console.log(
+        `✅ Найдено ${result.rows.length} исходящих и ${referencingResult.rows.length} входящих внешних ключей для таблицы ${tableName}`,
+      )
+
+      res.json({
+        success: true,
+        data: {
+          tableName,
+          outgoingForeignKeys: result.rows,
+          incomingForeignKeys: referencingResult.rows,
+        },
+      })
+    } catch (error) {
+      console.error('❌ Ошибка получения внешних ключей:', error)
+      res.status(500).json({
+        success: false,
+        error: 'Ошибка получения внешних ключей таблицы',
+        details: error.message,
+      })
+    }
+  }
+
+  // Get database relationships and data model
+  async getDatabaseRelationships(req, res) {
+    try {
+      console.log('🗺️ Получение модели данных и связей...')
+
+      // Get all tables with their relationships
+      const tablesResult = await query(`
+        SELECT
+          t.table_name,
+          t.table_schema,
+          obj_description(pgc.oid) as table_comment
+        FROM information_schema.tables t
+        LEFT JOIN pg_class pgc ON pgc.relname = t.table_name
+        WHERE t.table_schema = 'public'
+        AND t.table_type = 'BASE TABLE'
+        ORDER BY t.table_name
+      `)
+
+      // Get all foreign key relationships
+      const relationshipsResult = await query(`
+        SELECT
+          tc.table_name AS source_table,
+          kcu.column_name AS source_column,
+          ccu.table_name AS target_table,
+          ccu.column_name AS target_column,
+          tc.constraint_name,
+          rc.update_rule,
+          rc.delete_rule
+        FROM information_schema.table_constraints AS tc
+        JOIN information_schema.key_column_usage AS kcu
+          ON tc.constraint_name = kcu.constraint_name
+          AND tc.table_schema = kcu.table_schema
+        JOIN information_schema.constraint_column_usage AS ccu
+          ON ccu.constraint_name = tc.constraint_name
+          AND ccu.table_schema = tc.table_schema
+        JOIN information_schema.referential_constraints AS rc
+          ON tc.constraint_name = rc.constraint_name
+          AND tc.table_schema = rc.constraint_schema
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+        AND tc.table_schema = 'public'
+        ORDER BY tc.table_name, tc.constraint_name
+      `)
+
+      // Get column information for each table
+      const columnsResult = await query(`
+        SELECT
+          c.table_name,
+          c.column_name,
+          c.data_type,
+          c.is_nullable,
+          c.column_default,
+          CASE WHEN tc.constraint_type = 'PRIMARY KEY' THEN true ELSE false END as is_primary_key
+        FROM information_schema.columns c
+        LEFT JOIN information_schema.key_column_usage kcu
+          ON c.table_name = kcu.table_name
+          AND c.column_name = kcu.column_name
+          AND c.table_schema = kcu.table_schema
+        LEFT JOIN information_schema.table_constraints tc
+          ON kcu.constraint_name = tc.constraint_name
+          AND tc.constraint_type = 'PRIMARY KEY'
+        WHERE c.table_schema = 'public'
+        ORDER BY c.table_name, c.ordinal_position
+      `)
+
+      // Group columns by table
+      const tablesWithColumns = {}
+      columnsResult.rows.forEach((column) => {
+        if (!tablesWithColumns[column.table_name]) {
+          tablesWithColumns[column.table_name] = []
+        }
+        tablesWithColumns[column.table_name].push(column)
+      })
+
+      // Build the data model
+      const dataModel = {
+        tables: tablesResult.rows.map((table) => ({
+          name: table.table_name,
+          schema: table.table_schema,
+          comment: table.table_comment,
+          columns: tablesWithColumns[table.table_name] || [],
+          position: {
+            // Generate a simple grid layout
+            x: (tablesResult.rows.indexOf(table) % 4) * 300 + 50,
+            y: Math.floor(tablesResult.rows.indexOf(table) / 4) * 200 + 50,
+          },
+        })),
+        relationships: relationshipsResult.rows.map((rel) => ({
+          id: `${rel.source_table}_${rel.source_column}_${rel.target_table}_${rel.target_column}`,
+          sourceTable: rel.source_table,
+          sourceColumn: rel.source_column,
+          targetTable: rel.target_table,
+          targetColumn: rel.target_column,
+          constraintName: rel.constraint_name,
+          updateRule: rel.update_rule,
+          deleteRule: rel.delete_rule,
+          type: 'foreign_key',
+        })),
+      }
+
+      console.log(
+        `✅ Модель данных получена: ${dataModel.tables.length} таблиц, ${dataModel.relationships.length} связей`,
+      )
+
+      res.json({
+        success: true,
+        data: dataModel,
+      })
+    } catch (error) {
+      console.error('❌ Ошибка получения модели данных:', error)
+      res.status(500).json({
+        success: false,
+        error: 'Ошибка получения модели данных',
         details: error.message,
       })
     }

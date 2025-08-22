@@ -26,7 +26,7 @@ const router = createRouter({
       path: '/tables/:tableName',
       name: 'table-detail',
       component: () => import('@/views/TableDetailView.vue'),
-      meta: { title: 'Данные таблицы' },
+      meta: { title: 'Данны�� таблицы' },
       props: true,
     },
     {
@@ -35,6 +35,12 @@ const router = createRouter({
       component: () => import('@/views/TableSchemaView.vue'),
       meta: { title: 'Схема таблицы' },
       props: true,
+    },
+    {
+      path: '/data-model',
+      name: 'data-model',
+      component: () => import('@/views/DatabaseModelView.vue'),
+      meta: { title: 'Модель данных' },
     },
     {
       path: '/queries',

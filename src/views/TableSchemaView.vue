@@ -316,11 +316,39 @@
             </div>
           </div>
 
-          <!-- Indexes and Constraints (placeholder for future implementation) -->
+          <!-- Indexes and Foreign Keys -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow-card border border-gray-200 p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Индексы</h3>
-              <div class="text-center py-8 text-gray-500">
+            <!-- Indexes -->
+            <div class="bg-white rounded-lg shadow-card border border-gray-200">
+              <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">Индексы</h3>
+                <button
+                  @click="refreshIndexes"
+                  :disabled="loadingIndexes"
+                  class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 disabled:opacity-50"
+                >
+                  {{ loadingIndexes ? 'Загрузка...' : '🔄' }}
+                </button>
+              </div>
+
+              <div v-if="loadingIndexes" class="p-6 text-center">
+                <div
+                  class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"
+                ></div>
+                <p class="text-gray-600">Загрузка индексов...</p>
+              </div>
+
+              <div v-else-if="indexesError" class="p-6 text-center text-error-600">
+                <p class="mb-2">{{ indexesError }}</p>
+                <button
+                  @click="refreshIndexes"
+                  class="text-sm text-primary-600 hover:text-primary-700"
+                >
+                  Попробовать снова
+                </button>
+              </div>
+
+              <div v-else-if="!indexes.length" class="p-6 text-center text-gray-500">
                 <svg
                   class="w-12 h-12 text-gray-300 mx-auto mb-2"
                   fill="none"
@@ -334,13 +362,76 @@
                     d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                   />
                 </svg>
-                <p class="text-sm">Информация об индексах будет добавлена в следующей версии</p>
+                <p class="text-sm">Индексы не найдены</p>
+              </div>
+
+              <div v-else class="p-6 space-y-4">
+                <div
+                  v-for="index in indexes"
+                  :key="index.index_name"
+                  class="border border-gray-200 rounded-lg p-4"
+                >
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-medium text-gray-900">{{ index.index_name }}</h4>
+                    <span
+                      :class="{
+                        'bg-primary-100 text-primary-800': index.index_type === 'PRIMARY',
+                        'bg-success-100 text-success-800': index.index_type === 'UNIQUE',
+                        'bg-gray-100 text-gray-800': index.index_type === 'REGULAR',
+                      }"
+                      class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                    >
+                      {{ index.index_type }}
+                    </span>
+                  </div>
+                  <div class="text-sm text-gray-600 space-y-1">
+                    <p><strong>Столбцы:</strong> {{ index.columns }}</p>
+                    <p><strong>Метод:</strong> {{ index.index_method }}</p>
+                    <p><strong>Размер:</strong> {{ index.index_size }}</p>
+                  </div>
+                  <div class="mt-2 text-xs font-mono text-gray-500 bg-gray-50 p-2 rounded">
+                    {{ index.index_definition }}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow-card border border-gray-200 p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Внешние ключи</h3>
-              <div class="text-center py-8 text-gray-500">
+            <!-- Foreign Keys -->
+            <div class="bg-white rounded-lg shadow-card border border-gray-200">
+              <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">Внешние ключи</h3>
+                <button
+                  @click="refreshForeignKeys"
+                  :disabled="loadingForeignKeys"
+                  class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 disabled:opacity-50"
+                >
+                  {{ loadingForeignKeys ? 'Загрузка...' : '🔄' }}
+                </button>
+              </div>
+
+              <div v-if="loadingForeignKeys" class="p-6 text-center">
+                <div
+                  class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"
+                ></div>
+                <p class="text-gray-600">Загрузка внешних ключей...</p>
+              </div>
+
+              <div v-else-if="foreignKeysError" class="p-6 text-center text-error-600">
+                <p class="mb-2">{{ foreignKeysError }}</p>
+                <button
+                  @click="refreshForeignKeys"
+                  class="text-sm text-primary-600 hover:text-primary-700"
+                >
+                  Попробовать снова
+                </button>
+              </div>
+
+              <div
+                v-else-if="
+                  !foreignKeys.outgoingForeignKeys.length && !foreignKeys.incomingForeignKeys.length
+                "
+                class="p-6 text-center text-gray-500"
+              >
                 <svg
                   class="w-12 h-12 text-gray-300 mx-auto mb-2"
                   fill="none"
@@ -354,9 +445,65 @@
                     d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
                   />
                 </svg>
-                <p class="text-sm">
-                  Информация о внешних ключах будет добавлена в следующей версии
-                </p>
+                <p class="text-sm">Внешние ключи не найдены</p>
+              </div>
+
+              <div v-else class="p-6 space-y-4">
+                <!-- Outgoing Foreign Keys -->
+                <div v-if="foreignKeys.outgoingForeignKeys.length">
+                  <h4 class="font-medium text-gray-900 mb-3">Исходящие связи</h4>
+                  <div
+                    v-for="fk in foreignKeys.outgoingForeignKeys"
+                    :key="fk.constraint_name"
+                    class="border border-gray-200 rounded-lg p-3 bg-blue-50"
+                  >
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-sm font-medium text-gray-900">{{
+                        fk.constraint_name
+                      }}</span>
+                      <span class="text-xs text-gray-500">FK</span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                      <p>
+                        <strong>{{ fk.column_name }}</strong> →
+                        <strong>{{ fk.foreign_table_name }}.{{ fk.foreign_column_name }}</strong>
+                      </p>
+                      <div class="flex gap-4 mt-1 text-xs">
+                        <span>UPDATE: {{ fk.update_rule }}</span>
+                        <span>DELETE: {{ fk.delete_rule }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Incoming Foreign Keys -->
+                <div v-if="foreignKeys.incomingForeignKeys.length">
+                  <h4 class="font-medium text-gray-900 mb-3">Входящие связи</h4>
+                  <div
+                    v-for="fk in foreignKeys.incomingForeignKeys"
+                    :key="fk.constraint_name"
+                    class="border border-gray-200 rounded-lg p-3 bg-green-50"
+                  >
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-sm font-medium text-gray-900">{{
+                        fk.constraint_name
+                      }}</span>
+                      <span class="text-xs text-gray-500">REF</span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                      <p>
+                        <strong
+                          >{{ fk.referencing_table_name }}.{{ fk.referencing_column_name }}</strong
+                        >
+                        → этот столбец
+                      </p>
+                      <div class="flex gap-4 mt-1 text-xs">
+                        <span>UPDATE: {{ fk.update_rule }}</span>
+                        <span>DELETE: {{ fk.delete_rule }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -379,6 +526,10 @@ const ddlRef = ref<HTMLElement>()
 
 const loading = ref(false)
 const error = ref('')
+const loadingIndexes = ref(false)
+const indexesError = ref('')
+const loadingForeignKeys = ref(false)
+const foreignKeysError = ref('')
 
 interface ColumnSchema {
   column_name: string
@@ -393,6 +544,38 @@ interface ColumnSchema {
 const schema = ref<{ tableName: string; columns: ColumnSchema[] }>({
   tableName: '',
   columns: [],
+})
+
+const indexes = ref<
+  Array<{
+    index_name: string
+    index_definition: string
+    index_type: 'PRIMARY' | 'UNIQUE' | 'REGULAR'
+    index_size: string
+    index_method: string
+    columns: string
+  }>
+>([])
+
+const foreignKeys = ref<{
+  outgoingForeignKeys: Array<{
+    constraint_name: string
+    column_name: string
+    foreign_table_name: string
+    foreign_column_name: string
+    update_rule: string
+    delete_rule: string
+  }>
+  incomingForeignKeys: Array<{
+    constraint_name: string
+    referencing_table_name: string
+    referencing_column_name: string
+    update_rule: string
+    delete_rule: string
+  }>
+}>({
+  outgoingForeignKeys: [],
+  incomingForeignKeys: [],
 })
 
 const primaryKeyCount = computed(() => {
@@ -424,6 +607,50 @@ const loadSchema = async () => {
 
 const refreshSchema = () => {
   loadSchema()
+}
+
+const loadIndexes = async () => {
+  loadingIndexes.value = true
+  indexesError.value = ''
+
+  try {
+    const indexData = await dbService.getTableIndexes(tableName.value)
+    indexes.value = indexData.indexes
+  } catch (err) {
+    indexesError.value = err instanceof Error ? err.message : 'Неизвестная ошибка'
+    indexes.value = []
+  } finally {
+    loadingIndexes.value = false
+  }
+}
+
+const loadForeignKeys = async () => {
+  loadingForeignKeys.value = true
+  foreignKeysError.value = ''
+
+  try {
+    const fkData = await dbService.getTableForeignKeys(tableName.value)
+    foreignKeys.value = {
+      outgoingForeignKeys: fkData.outgoingForeignKeys,
+      incomingForeignKeys: fkData.incomingForeignKeys,
+    }
+  } catch (err) {
+    foreignKeysError.value = err instanceof Error ? err.message : 'Неизвестная ошибка'
+    foreignKeys.value = {
+      outgoingForeignKeys: [],
+      incomingForeignKeys: [],
+    }
+  } finally {
+    loadingForeignKeys.value = false
+  }
+}
+
+const refreshIndexes = () => {
+  loadIndexes()
+}
+
+const refreshForeignKeys = () => {
+  loadForeignKeys()
 }
 
 const isPrimaryKey = (column: ColumnSchema): boolean => {
@@ -518,11 +745,15 @@ watch(
     if (newTableName && newTableName !== tableName.value) {
       tableName.value = newTableName as string
       loadSchema()
+      loadIndexes()
+      loadForeignKeys()
     }
   },
 )
 
 onMounted(() => {
   loadSchema()
+  loadIndexes()
+  loadForeignKeys()
 })
 </script>

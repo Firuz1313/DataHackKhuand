@@ -35,7 +35,7 @@
           <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
           <span class="text-sm font-medium text-gray-900">Кэш API</span>
         </div>
-        <span class="text-sm text-gray-700">{{ cacheInfo.size }} записей</span>
+        <span class="text-sm text-gray-800 font-medium">{{ cacheInfo.size }} записей</span>
       </div>
 
       <!-- Last Request Time -->
@@ -44,7 +44,7 @@
           <div class="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
           <span class="text-sm font-medium text-gray-900">Последний запрос</span>
         </div>
-        <span class="text-sm text-gray-700">{{ lastRequestTime }}</span>
+        <span class="text-sm text-gray-800 font-medium">{{ lastRequestTime }}</span>
       </div>
 
       <!-- Request Rate -->

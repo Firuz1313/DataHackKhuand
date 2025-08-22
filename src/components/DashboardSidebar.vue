@@ -93,6 +93,28 @@
 
         <li>
           <router-link
+            to="/data-model"
+            :class="
+              $route.name === 'data-model'
+                ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
+                : 'text-gray-600 hover:bg-gray-50'
+            "
+            class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200"
+          >
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+              />
+            </svg>
+            Модель данных
+          </router-link>
+        </li>
+
+        <li>
+          <router-link
             to="/queries"
             :class="
               $route.name === 'queries'
@@ -274,6 +296,15 @@ const testConnections = async () => {
     console.error('Connection test failed:', error)
     connectionStatus.neon = false
     connectionStatus.legacy = false
+
+    // If it's a rate limit error, don't retry for a while
+    if (
+      error instanceof Error &&
+      (error.message.includes('429') || error.message.includes('Rate limit'))
+    ) {
+      console.warn('⏸️ Connection test skipped due to rate limiting')
+      return
+    }
   } finally {
     testing.value = false
   }
@@ -281,10 +312,16 @@ const testConnections = async () => {
 
 // Delay API calls to prevent rate limiting when multiple components mount
 const delayedConnectionTest = async () => {
-  // Add random delay between 500-1500ms to stagger API calls
-  const delay = 500 + Math.random() * 1000
+  // Add longer random delay between 2-5 seconds to stagger API calls
+  const delay = 2000 + Math.random() * 3000
   await new Promise((resolve) => setTimeout(resolve, delay))
-  await testConnections()
+
+  // Check if we should skip the test to avoid rate limiting
+  try {
+    await testConnections()
+  } catch (error) {
+    console.warn('Skipped connection test due to rate limiting')
+  }
 }
 
 onMounted(() => {
