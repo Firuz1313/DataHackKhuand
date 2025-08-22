@@ -17,9 +17,9 @@
               clip-rule="evenodd"
             />
           </svg>
-          <span class="text-error-700 font-medium">Ошибка подключения к базе данных</span>
+          <span class="text-error-800 font-semibold">Ошибка подключения к базе данных</span>
         </div>
-        <p class="text-error-600 text-sm mt-1">{{ error }}</p>
+        <p class="text-error-700 text-sm font-medium mt-1">{{ error }}</p>
         <button @click="fetchStats" class="mt-2 btn-primary text-sm">Повторить</button>
       </div>
     </div>
@@ -30,9 +30,9 @@
       <div class="card p-6 animate-fade-in">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-600">Всего таблиц</p>
+            <p class="text-sm font-semibold text-gray-700">Всего таблиц</p>
             <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalTables }}</p>
-            <p class="text-sm text-success-600 mt-1">
+            <p class="text-sm text-success-700 font-medium mt-1">
               <span class="inline-flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -67,11 +67,11 @@
       <div class="card p-6 animate-fade-in" style="animation-delay: 0.1s">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-600">Всего записей</p>
+            <p class="text-sm font-semibold text-gray-700">Всего записей</p>
             <p class="text-3xl font-bold text-gray-900 mt-2">
               {{ formatNumber(stats.totalRecords) }}
             </p>
-            <p class="text-sm text-success-600 mt-1">
+            <p class="text-sm text-success-700 font-medium mt-1">
               <span class="inline-flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -106,9 +106,9 @@
       <div class="card p-6 animate-fade-in" style="animation-delay: 0.2s">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-600">Размер БД</p>
+            <p class="text-sm font-semibold text-gray-700">Размер БД</p>
             <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.databaseSize }}</p>
-            <p class="text-sm text-warning-600 mt-1">
+            <p class="text-sm text-warning-700 font-medium mt-1">
               <span class="inline-flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -143,9 +143,9 @@
       <div class="card p-6 animate-fade-in" style="animation-delay: 0.3s">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium text-gray-600">Активные подключения</p>
+            <p class="text-sm font-semibold text-gray-700">Активные подключения</p>
             <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.activeConnections }}</p>
-            <p class="text-sm text-info-600 mt-1">
+            <p class="text-sm text-info-700 font-medium mt-1">
               <span class="inline-flex items-center">
                 <div class="w-2 h-2 bg-success-500 rounded-full mr-2 animate-pulse"></div>
                 Максимум: {{ stats.maxConnections }}
