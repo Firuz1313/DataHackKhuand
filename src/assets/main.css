@@ -42,15 +42,44 @@
 
   /* Enhanced text styles for better readability */
   .text-primary-contrast {
-    @apply text-primary-700;
+    @apply text-primary-800 font-medium;
   }
 
   .text-secondary-contrast {
-    @apply text-gray-700;
+    @apply text-gray-800 font-medium;
   }
 
   .text-muted-contrast {
-    @apply text-gray-600;
+    @apply text-gray-700 font-medium;
+  }
+
+  /* Improved text visibility classes */
+  .text-primary-strong {
+    @apply text-gray-900 font-semibold;
+  }
+
+  .text-secondary-strong {
+    @apply text-gray-800 font-medium;
+  }
+
+  .text-muted-strong {
+    @apply text-gray-700 font-normal;
+  }
+
+  /* Force high contrast text */
+  .text-high-contrast {
+    color: #1a202c !important;
+    font-weight: 500 !important;
+  }
+
+  .text-medium-contrast {
+    color: #2d3748 !important;
+    font-weight: 500 !important;
+  }
+
+  .text-readable {
+    color: #374151 !important;
+    font-weight: 500 !important;
   }
 
   /* Improved form styles */
