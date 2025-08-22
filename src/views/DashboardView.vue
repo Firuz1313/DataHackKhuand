@@ -493,7 +493,7 @@ const executiveKPIs = ref([
   },
   {
     id: 3,
-    label: 'Время отклика',
+    label: 'В��емя отклика',
     value: '47ms',
     subtitle: 'Среднее',
     trend: -15.2,
@@ -686,7 +686,7 @@ const executeQuery = async () => {
     console.log('Query result:', result)
 
     alert(
-      `✅ Запрос выполнен успешно!\n\nРезультатов: ${result.length}\n\nПодробности в консоли браузера (F12 → Console)`,
+      `✅ Запрос выполнен успешно!\n\nРезультатов: ${result.rowCount || result.rows?.length || 0}\n\nПодробности в консоли браузера (F12 → Console)`,
     )
   } catch (error) {
     console.error('Query execution error:', error)
