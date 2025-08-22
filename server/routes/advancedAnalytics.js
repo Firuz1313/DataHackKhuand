@@ -93,81 +93,128 @@ router.post('/dashboard-kpis', async (req, res) => {
     const totalOrders = ordersResult.rows[0]?.total_orders || 1
 
     if (channelResult.rows && channelResult.rows.length > 0) {
-      channelResult.rows.forEach(row => {
+      channelResult.rows.forEach((row) => {
         const percentage = ((row.orders / totalOrders) * 100).toFixed(1)
         channelMix[row.channel] = parseFloat(percentage)
         topChannels.push({
           channel: row.channel,
           orders: parseInt(row.orders),
-          revenue: parseInt(row.orders) * 580 // Estimate revenue
+          revenue: parseInt(row.orders) * 580, // Estimate revenue
         })
       })
     }
 
     // Mock geography data
     const districts = [
-      { district: 'Центральный район', orders: Math.floor(totalOrders * 0.35), revenue: Math.floor(totalOrders * 0.35 * 580) },
-      { district: 'Северный район', orders: Math.floor(totalOrders * 0.25), revenue: Math.floor(totalOrders * 0.25 * 580) },
-      { district: 'Южный район', orders: Math.floor(totalOrders * 0.20), revenue: Math.floor(totalOrders * 0.20 * 580) },
-      { district: 'Прочие районы', orders: Math.floor(totalOrders * 0.20), revenue: Math.floor(totalOrders * 0.20 * 580) }
+      {
+        district: 'Центральный район',
+        orders: Math.floor(totalOrders * 0.35),
+        revenue: Math.floor(totalOrders * 0.35 * 580),
+      },
+      {
+        district: 'Северный район',
+        orders: Math.floor(totalOrders * 0.25),
+        revenue: Math.floor(totalOrders * 0.25 * 580),
+      },
+      {
+        district: 'Южный район',
+        orders: Math.floor(totalOrders * 0.2),
+        revenue: Math.floor(totalOrders * 0.2 * 580),
+      },
+      {
+        district: 'Прочие районы',
+        orders: Math.floor(totalOrders * 0.2),
+        revenue: Math.floor(totalOrders * 0.2 * 580),
+      },
     ]
 
     // Mock daily patterns
     const dailyPatterns = [
-      { day: 'Понедельник', orders: Math.floor(totalOrders * 0.13), revenue: Math.floor(totalOrders * 0.13 * 580) },
-      { day: 'Вторник', orders: Math.floor(totalOrders * 0.12), revenue: Math.floor(totalOrders * 0.12 * 580) },
-      { day: 'Среда', orders: Math.floor(totalOrders * 0.14), revenue: Math.floor(totalOrders * 0.14 * 580) },
-      { day: 'Четверг', orders: Math.floor(totalOrders * 0.15), revenue: Math.floor(totalOrders * 0.15 * 580) },
-      { day: 'Пятница', orders: Math.floor(totalOrders * 0.16), revenue: Math.floor(totalOrders * 0.16 * 580) },
-      { day: 'Суббота', orders: Math.floor(totalOrders * 0.18), revenue: Math.floor(totalOrders * 0.18 * 580) },
-      { day: 'Воскресенье', orders: Math.floor(totalOrders * 0.12), revenue: Math.floor(totalOrders * 0.12 * 580) }
+      {
+        day: 'Понедельник',
+        orders: Math.floor(totalOrders * 0.13),
+        revenue: Math.floor(totalOrders * 0.13 * 580),
+      },
+      {
+        day: 'Вторник',
+        orders: Math.floor(totalOrders * 0.12),
+        revenue: Math.floor(totalOrders * 0.12 * 580),
+      },
+      {
+        day: 'Среда',
+        orders: Math.floor(totalOrders * 0.14),
+        revenue: Math.floor(totalOrders * 0.14 * 580),
+      },
+      {
+        day: 'Четверг',
+        orders: Math.floor(totalOrders * 0.15),
+        revenue: Math.floor(totalOrders * 0.15 * 580),
+      },
+      {
+        day: 'Пятница',
+        orders: Math.floor(totalOrders * 0.16),
+        revenue: Math.floor(totalOrders * 0.16 * 580),
+      },
+      {
+        day: 'Суббота',
+        orders: Math.floor(totalOrders * 0.18),
+        revenue: Math.floor(totalOrders * 0.18 * 580),
+      },
+      {
+        day: 'Воскресенье',
+        orders: Math.floor(totalOrders * 0.12),
+        revenue: Math.floor(totalOrders * 0.12 * 580),
+      },
     ]
 
     // Assemble final KPI structure with real data
     const kpis = {
       orders: ordersResult.rows[0] || { total_orders: 0, orders_growth: 0, avg_orders_per_day: 0 },
       units: unitsResult.rows[0] || { total_units: 0, units_growth: 0, avg_units_per_order: 0 },
-      revenue: revenueResult.rows[0] || { gross_revenue: 0, net_paid_revenue: 0, revenue_growth: 0 },
+      revenue: revenueResult.rows[0] || {
+        gross_revenue: 0,
+        net_paid_revenue: 0,
+        revenue_growth: 0,
+      },
       aov: aovResult.rows[0] || { average_order_value: 0, aov_growth: 0, aov_by_channel: {} },
       conversion: conversionResult.rows[0] || { payment_conversion: 0, conversion_trend: [] },
       returns: { return_rate: 3.2, return_amount: 125000, return_units: 450 },
       wallet_share: {
         wallet_percentage: 15.3,
         payment_mix: {
-          'Карта': 68.2,
+          Карта: 68.2,
           'Банковский перевод': 16.5,
-          'Электронный кошелек': 15.3
-        }
+          'Электронный кошелек': 15.3,
+        },
       },
       channels: {
         channel_mix: channelMix,
-        top_channels: topChannels
+        top_channels: topChannels,
       },
       geography: {
         regions: [],
-        districts: districts
+        districts: districts,
       },
       seasonality: {
         holiday_effect: 22.4,
         weekend_vs_weekday: {
-          'weekend': Math.floor(totalOrders * 0.15),
-          'weekday': Math.floor(totalOrders * 0.12)
+          weekend: Math.floor(totalOrders * 0.15),
+          weekday: Math.floor(totalOrders * 0.12),
         },
-        daily_patterns: dailyPatterns
-      }
+        daily_patterns: dailyPatterns,
+      },
     }
 
     res.json({
       success: true,
-      data: kpis
+      data: kpis,
     })
-
   } catch (error) {
     console.error('❌ Error calculating dashboard KPIs:', error)
     res.status(500).json({
       success: false,
       error: 'Error calculating dashboard KPIs',
-      details: error.message
+      details: error.message,
     })
   }
 })
@@ -186,16 +233,16 @@ router.get('/business-insights', async (req, res) => {
         impact: 'high',
         evidence: 'Analysis of 10,000+ transactions over last 30 days',
         business_action: 'Promote credit card payments for faster checkout conversion',
-        quantitative_effect: 'Potential 22% increase in payment completion rate'
+        quantitative_effect: 'Potential 22% increase in payment completion rate',
       },
       {
-        id: 'insight_2', 
+        id: 'insight_2',
         title: 'Weekend Order Volume Spike',
         description: 'Weekend orders are 35% higher than weekdays with 28% higher AOV',
         impact: 'medium',
         evidence: 'Saturday/Sunday avg: 1,250 orders vs Mon-Fri avg: 925 orders',
         business_action: 'Increase weekend marketing spend and inventory allocation',
-        quantitative_effect: 'Weekend revenue represents 42% of weekly total'
+        quantitative_effect: 'Weekend revenue represents 42% of weekly total',
       },
       {
         id: 'insight_3',
@@ -204,8 +251,8 @@ router.get('/business-insights', async (req, res) => {
         impact: 'high',
         evidence: 'Customer segmentation analysis shows revenue concentration',
         business_action: 'Implement VIP retention program and diversify customer acquisition',
-        quantitative_effect: 'Loss of 5% top customers = 13.6% revenue impact'
-      }
+        quantitative_effect: 'Loss of 5% top customers = 13.6% revenue impact',
+      },
     ]
 
     const trends = [
@@ -213,36 +260,35 @@ router.get('/business-insights', async (req, res) => {
         metric: 'Orders',
         direction: 'up',
         change_percent: 12.5,
-        period: '30 days'
+        period: '30 days',
       },
       {
         metric: 'AOV',
-        direction: 'up', 
+        direction: 'up',
         change_percent: 8.3,
-        period: '30 days'
+        period: '30 days',
       },
       {
         metric: 'Conversion',
         direction: 'down',
         change_percent: -3.2,
-        period: '30 days'
-      }
+        period: '30 days',
+      },
     ]
 
     res.json({
       success: true,
       data: {
         insights,
-        trends
-      }
+        trends,
+      },
     })
-
   } catch (error) {
     console.error('❌ Error generating business insights:', error)
     res.status(500).json({
       success: false,
       error: 'Error generating business insights',
-      details: error.message
+      details: error.message,
     })
   }
 })
@@ -251,10 +297,10 @@ router.get('/business-insights', async (req, res) => {
 router.post('/time-series', async (req, res) => {
   try {
     const { metric = 'revenue', granularity = 'day', days = 30 } = req.body
-    
-    const dateFormat = granularity === 'day' ? 'YYYY-MM-DD' : 
-                      granularity === 'week' ? 'YYYY-"W"WW' : 'YYYY-MM'
-    
+
+    const dateFormat =
+      granularity === 'day' ? 'YYYY-MM-DD' : granularity === 'week' ? 'YYYY-"W"WW' : 'YYYY-MM'
+
     const result = await query(`
       SELECT 
         TO_CHAR(o.order_date, '${dateFormat}') as period,
@@ -270,15 +316,14 @@ router.post('/time-series', async (req, res) => {
 
     res.json({
       success: true,
-      data: result.rows
+      data: result.rows,
     })
-
   } catch (error) {
     console.error('❌ Error getting time series data:', error)
     res.status(500).json({
       success: false,
       error: 'Error getting time series data',
-      details: error.message
+      details: error.message,
     })
   }
 })

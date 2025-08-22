@@ -14,7 +14,7 @@ DataBoard is a complete business intelligence solution that transforms raw e-com
 ✅ **Business Insights**: ≥3 non-obvious insights with quantitative evidence  
 ✅ **Data Quality Monitoring**: Duplicate detection, referential integrity checks  
 ✅ **Export Capabilities**: Multiple formats (JSON, CSV, SQL) with parameterized queries  
-✅ **Admin Interface**: Complete business table management and migrations  
+✅ **Admin Interface**: Complete business table management and migrations
 
 ## 🚀 Quick Start - End-to-End Pipeline
 
@@ -64,7 +64,7 @@ npm run server:dev   # Backend (port 3001)
 ```bash
 # Automatic validation runs during setup, check:
 # - Duplicate detection
-# - Referential integrity 
+# - Referential integrity
 # - Data type validation
 # - Connection key verification
 ```
@@ -81,13 +81,15 @@ npm run server:dev   # Backend (port 3001)
 ### 1. EXTRACT Phase
 
 **Data Sources**: PostgreSQL database with e-commerce transaction data
+
 - **Orders**: 105,000+ customer transactions
 - **Order Items**: 160,591+ line items with products
-- **Customers**: 34,333+ customer records  
+- **Customers**: 34,333+ customer records
 - **Products**: Product catalog with pricing
 - **Payments**: Payment processing records
 
 **Connection Method**:
+
 ```javascript
 // Backend connection in server/config/database.js
 const dbConfig = {
@@ -104,6 +106,7 @@ const dbConfig = {
 **Data Cleaning Implementation**: `server/routes/advancedAnalytics.js`
 
 **Before/After Counts & Validation**:
+
 ```sql
 -- Raw data counts
 SELECT 'orders' as table_name, COUNT(*) as raw_count FROM orders;          -- 105,000
@@ -111,17 +114,18 @@ SELECT 'order_items' as table_name, COUNT(*) as raw_count FROM order_items; -- 1
 SELECT 'customers' as table_name, COUNT(*) as raw_count FROM customers;     -- 34,333
 
 -- Cleaned data (post-validation)
-SELECT 'valid_orders' as table_name, COUNT(*) as clean_count 
+SELECT 'valid_orders' as table_name, COUNT(*) as clean_count
 FROM orders WHERE order_id IS NOT NULL AND customer_id IS NOT NULL;
 
 -- Duplicate removal justification
-SELECT 'duplicates_removed' as operation, 
+SELECT 'duplicates_removed' as operation,
        COUNT(*) - COUNT(DISTINCT order_id) as removed_count,
        'Orders with duplicate IDs merged' as justification
 FROM orders;
 ```
 
 **Cleaning Operations Applied**:
+
 - ✅ **Null Value Handling**: Filtered out incomplete records
 - ✅ **Duplicate Detection**: Business key validation (customer_code, order_number)
 - ✅ **Data Type Validation**: Ensured numeric fields are valid
@@ -133,17 +137,20 @@ FROM orders;
 **Star Schema Implementation**: `docs/KPI_FORMULAS.md`
 
 **Fact Tables**:
+
 - `orders` → Core transaction data
-- `order_items` → Product line items  
+- `order_items` → Product line items
 - `payments` → Payment processing
 
 **Dimension Tables**:
+
 - `customers` → Customer master data
 - `products` → Product catalog
 - `dim_regions` → Geographic data
 - `dim_payment_methods` → Payment types
 
 **Key Relationships** (prevents double counting):
+
 ```sql
 -- Primary relationships
 orders.customer_id → customers.id
@@ -177,28 +184,30 @@ products.product_code (UNIQUE)
 
 ### Mandatory KPIs Implemented
 
-| KPI | Formula | Business Definition |
-|-----|---------|-------------------|
-| **Заказы** | `COUNT(DISTINCT order_id)` | Total customer orders in period |
-| **Единицы товара** | `SUM(quantity)` | Total product units sold |
-| **Валовая выручка** | `SUM(order_total)` | Total order value before payments |
-| **Оплаченная выручка (Net Paid)** | `SUM(paid_amount WHERE status='paid')` | Confirmed payment revenue |
-| **AOV** | `AVG(order_total)` | Average order value per transaction |
-| **Конверсия оплаты** | `(paid_orders / total_orders) * 100` | Payment success rate |
-| **Доля возвратов** | `(returned_orders / total_orders) * 100` | Return rate percentage |
-| **Доля кошельков** | `(wallet_payments / total_payments) * 100` | Digital wallet usage |
-| **Канальный микс** | `GROUP BY channel` | Revenue distribution by channel |
-| **Срезы по регионам** | `GROUP BY region` | Geographic performance |
-| **Эффект праздников/выходных** | `weekend_avg / weekday_avg * 100` | Seasonal patterns |
+| KPI                               | Formula                                    | Business Definition                 |
+| --------------------------------- | ------------------------------------------ | ----------------------------------- |
+| **Заказы**                        | `COUNT(DISTINCT order_id)`                 | Total customer orders in period     |
+| **Единицы товара**                | `SUM(quantity)`                            | Total product units sold            |
+| **Валовая выручка**               | `SUM(order_total)`                         | Total order value before payments   |
+| **Оплаченная выручка (Net Paid)** | `SUM(paid_amount WHERE status='paid')`     | Confirmed payment revenue           |
+| **AOV**                           | `AVG(order_total)`                         | Average order value per transaction |
+| **Конверсия оплаты**              | `(paid_orders / total_orders) * 100`       | Payment success rate                |
+| **Доля возвратов**                | `(returned_orders / total_orders) * 100`   | Return rate percentage              |
+| **Доля кошельков**                | `(wallet_payments / total_payments) * 100` | Digital wallet usage                |
+| **Канальный микс**                | `GROUP BY channel`                         | Revenue distribution by channel     |
+| **Срезы по регионам**             | `GROUP BY region`                          | Geographic performance              |
+| **Эффект праздников/выходных**    | `weekend_avg / weekday_avg * 100`          | Seasonal patterns                   |
 
 ### Business Insights Generated
 
 1. **Payment Method Optimization**
+
    - Evidence: Credit cards show 95% vs 78% bank transfer success
    - Impact: 22% conversion improvement potential
    - Action: Promote card payments for faster checkout
 
 2. **Weekend Revenue Spike**
+
    - Evidence: +35% orders on weekends with +28% higher AOV
    - Impact: Weekend revenue = 42% of weekly total
    - Action: Increase weekend marketing spend
@@ -255,50 +264,57 @@ databoard/
 
 ### Validation Checks Implemented
 
-✅ **Duplicate Detection**: 
+✅ **Duplicate Detection**:
+
 - Customer records: 0 duplicates found
-- Order records: 0 duplicates found  
+- Order records: 0 duplicates found
 - Business key uniqueness verified
 
 ✅ **Referential Integrity**:
+
 - orders.customer_id → customers.id: 100% valid
 - order_items.order_id → orders.id: 100% valid
 - order_items.product_id → products.id: 100% valid
 
 ✅ **Data Type Validation**:
+
 - Numeric fields: All validated
 - Date fields: Proper format verified
 - Boolean fields: Consistent values
 
 ✅ **Connection Keys**:
+
 - Primary keys: No nulls or duplicates
 - Foreign keys: All references valid
 - Business keys: Unique constraints enforced
 
 ### Data Completeness
 
-| Table | Total Records | Complete Records | Completeness % |
-|-------|---------------|------------------|----------------|
-| orders | 105,000 | 105,000 | 100% |
-| order_items | 160,591 | 160,591 | 100% |
-| customers | 34,333 | 34,333 | 100% |
-| payments | 113,891 | 113,891 | 100% |
+| Table       | Total Records | Complete Records | Completeness % |
+| ----------- | ------------- | ---------------- | -------------- |
+| orders      | 105,000       | 105,000          | 100%           |
+| order_items | 160,591       | 160,591          | 100%           |
+| customers   | 34,333        | 34,333           | 100%           |
+| payments    | 113,891       | 113,891          | 100%           |
 
 ## 📤 Export Capabilities
 
 ### Available Export Formats
 
 1. **JSON Export**: Complete data with metadata
+
 ```bash
 GET /api/business-tables/export/orders/json
 ```
 
 2. **CSV Export**: Tabular format for analysis
+
 ```bash
 GET /api/business-tables/export/customers/csv
 ```
 
 3. **SQL Export**: Recreatable INSERT statements
+
 ```bash
 GET /api/business-tables/export/products/sql
 ```
@@ -306,6 +322,7 @@ GET /api/business-tables/export/products/sql
 ### Parameterized Queries
 
 Located in `sql/` directory:
+
 - `kpi_calculations.sql` → Date-filtered KPI queries
 - `data_export_queries.sql` → Configurable export scripts
 - `cohort_analysis.sql` → Customer retention analysis
@@ -319,7 +336,7 @@ Located in `sql/` directory:
 - **API Design**: RESTful endpoints with proper error handling
 - **Performance**: Query optimization and caching layer
 
-### Frontend Architecture  
+### Frontend Architecture
 
 - **Framework**: Vue 3 + TypeScript
 - **Styling**: TailwindCSS with responsive design
@@ -338,7 +355,7 @@ Located in `sql/` directory:
 ### Live Monitoring
 
 - **Database Connection**: ✅ Active
-- **API Endpoints**: ✅ Responsive  
+- **API Endpoints**: ✅ Responsive
 - **Data Validation**: ✅ Passing all checks
 - **Export Functions**: ✅ Operational
 - **Admin Interface**: ✅ Fully functional
@@ -355,7 +372,7 @@ Located in `sql/` directory:
 ### Getting Help
 
 1. **Documentation**: Check `docs/` folder for detailed guides
-2. **API Reference**: Visit `/api/health` for system status  
+2. **API Reference**: Visit `/api/health` for system status
 3. **Admin Panel**: Use `/admin` for table management
 4. **Data Dictionary**: See `docs/DATA_DICTIONARY.md`
 
@@ -364,16 +381,18 @@ Located in `sql/` directory:
 **Common Issues**:
 
 1. **Database Connection Failed**
+
    - Check environment variables in `.env`
    - Verify network connectivity to DB host
    - Ensure credentials are correct
 
 2. **Analytics Not Loading**
+
    - Run business tables setup in admin panel
    - Check backend logs for SQL errors
    - Verify data exists in source tables
 
-3. **Export Not Working**  
+3. **Export Not Working**
    - Check table permissions
    - Verify export format is supported
    - Ensure sufficient disk space
@@ -387,9 +406,9 @@ Located in `sql/` directory:
 ✅ **Data Quality**: Comprehensive validation and integrity checks  
 ✅ **Export Capabilities**: Multiple formats with clean artifacts  
 ✅ **Real Data**: Production analytics with 100k+ transactions  
-✅ **Admin Interface**: Complete table management system  
+✅ **Admin Interface**: Complete table management system
 
 ---
 
 **DataBoard v1.0** - Production-ready business intelligence platform  
-*Built with Vue 3, Node.js, PostgreSQL, and TailwindCSS*
+_Built with Vue 3, Node.js, PostgreSQL, and TailwindCSS_

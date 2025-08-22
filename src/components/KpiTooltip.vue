@@ -25,7 +25,7 @@
       <div class="font-medium mb-1">{{ title }}</div>
       <div class="text-xs text-gray-300">{{ description }}</div>
       <div v-if="formula" class="text-xs text-blue-300 mt-1 font-mono">{{ formula }}</div>
-      
+
       <!-- Arrow -->
       <div
         class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"
@@ -45,7 +45,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  position: 'top'
+  position: 'top',
 })
 
 const showTooltip = ref(false)

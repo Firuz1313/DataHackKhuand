@@ -6,13 +6,13 @@ import { dbService } from './database'
 
 /**
  * BUSINESS INTELLIGENCE DATA MODEL
- * 
+ *
  * FACT TABLES (Transaction/Event Data):
  * - orders: Order transactions with totals, dates, payment status
  * - order_items: Order line items with quantities, prices, products
  * - payments: Payment transactions
  * - inventory_movements: Stock movements (in/out/adjustments)
- * 
+ *
  * DIMENSION TABLES (Master Data):
  * - customers: Customer master data with segmentation
  * - products: Product catalog with categories and suppliers
@@ -22,7 +22,7 @@ import { dbService } from './database'
  * - dim_districts: Geographic districts
  * - dim_payment_methods: Payment method lookup
  * - dim_dates: Date dimension for time analysis
- * 
+ *
  * STAR SCHEMA RELATIONSHIPS:
  * orders (FACT) -> customers (DIM): orders.customer_id -> customers.id
  * order_items (FACT) -> orders (FACT): order_items.order_id -> orders.id
@@ -30,10 +30,10 @@ import { dbService } from './database'
  * products (DIM) -> suppliers (DIM): products.supplier_id -> suppliers.id
  * products (DIM) -> product_categories (DIM): products.category_id -> product_categories.id
  * payments (FACT) -> orders (FACT): payments.order_id -> orders.id
- * 
+ *
  * DEDUPLICATION KEYS:
  * - customers.customer_code (business key)
- * - products.product_code (business key)  
+ * - products.product_code (business key)
  * - orders.order_number (business key)
  * - suppliers.supplier_code (business key)
  */
@@ -55,26 +55,26 @@ export interface DashboardKPIs {
     avg_units_per_order: number
   }
   revenue: {
-    gross_revenue: number          // Валовая выручка
-    net_paid_revenue: number       // Оплаченная выручка (Net Paid)
+    gross_revenue: number // Валовая выручка
+    net_paid_revenue: number // Оплаченная выручка (Net Paid)
     revenue_growth: number
   }
   aov: {
-    average_order_value: number    // AOV - средняя стоимость заказа
+    average_order_value: number // AOV - средняя стоимость заказа
     aov_growth: number
     aov_by_channel: { [key: string]: number }
   }
   conversion: {
-    payment_conversion: number     // Конверсия оплаты (paid/total orders)
+    payment_conversion: number // Конверсия оплаты (paid/total orders)
     conversion_trend: number[]
   }
   returns: {
-    return_rate: number           // Доля возвратов
+    return_rate: number // Доля возвратов
     return_amount: number
     return_units: number
   }
   wallet_share: {
-    wallet_percentage: number     // Доля кошельков vs карты/налич
+    wallet_percentage: number // Доля кошельков vs карты/налич
     payment_mix: { [key: string]: number }
   }
   channels: {
@@ -86,7 +86,7 @@ export interface DashboardKPIs {
     districts: Array<{ district: string; revenue: number; orders: number }>
   }
   seasonality: {
-    holiday_effect: number        // Эффект праздников/выходных
+    holiday_effect: number // Эффект праздников/выходных
     weekend_vs_weekday: { weekend: number; weekday: number }
     daily_patterns: Array<{ day: string; orders: number; revenue: number }>
   }
@@ -129,7 +129,7 @@ class AnalyticsService {
       const response = await fetch('/api/advanced-analytics/dashboard-kpis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dateRange })
+        body: JSON.stringify({ dateRange }),
       })
 
       if (!response.ok) {
@@ -177,12 +177,16 @@ class AnalyticsService {
   /**
    * Time-series analysis for trend identification
    */
-  async getTimeSeries(metric: string, granularity: 'day' | 'week' | 'month' = 'day', days: number = 30) {
+  async getTimeSeries(
+    metric: string,
+    granularity: 'day' | 'week' | 'month' = 'day',
+    days: number = 30,
+  ) {
     try {
       const response = await fetch('/api/advanced-analytics/time-series', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ metric, granularity, days })
+        body: JSON.stringify({ metric, granularity, days }),
       })
 
       if (!response.ok) {
