@@ -6,7 +6,11 @@ const rateLimit = require('express-rate-limit')
 require('dotenv').config()
 
 const databaseRoutes = require('./routes/database')
+const migrationRoutes = require('./routes/migrations')
+const customTablesRoutes = require('./routes/customTables')
+const businessTablesRoutes = require('./routes/businessTables')
 const { connectToDatabase, closeDatabaseConnection } = require('./config/database')
+const migrationManager = require('./config/migrations')
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -59,6 +63,9 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/database', databaseRoutes)
+app.use('/api/migrations', migrationRoutes)
+app.use('/api/custom-tables', customTablesRoutes)
+app.use('/api/business-tables', businessTablesRoutes)
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -100,7 +107,7 @@ process.on('SIGTERM', async () => {
 })
 
 process.on('SIGINT', async () => {
-  console.log('Получен сигнал SIGINT, завершение работы...')
+  console.log('По��учен сигнал SIGINT, завершение работы...')
   await closeDatabaseConnection()
   process.exit(0)
 })
@@ -111,9 +118,44 @@ const startServer = async () => {
     // Connect to database
     await connectToDatabase()
 
+    // Run migrations
+    try {
+      console.log('🔄 Запуск миграций...')
+      const migrationResult = await migrationManager.runMigrations()
+      console.log(`✅ Миграции завершены: ${migrationResult.executed}/${migrationResult.total}`)
+    } catch (migrationError) {
+      console.error('⚠️ Ошибка миграций:', migrationError.message)
+      // Don't exit on migration error, just log it
+    }
+
+    // Setup business tables
+    try {
+      console.log('🏢 Настройка бизнес-таблиц...')
+      const businessTablesController = require('./controllers/businessTablesController')
+
+      // Create a mock response object to capture the result
+      const mockRes = {
+        json: (data) => {
+          if (data.success) {
+            console.log(`✅ Бизнес-таблицы настроены: выполнено ${data.data.executed} операций`)
+          } else {
+            console.log(`⚠️ Настройка бизнес-таблиц: ${data.message || data.error}`)
+          }
+        },
+        status: () => mockRes
+      }
+
+      await businessTablesController.setupBusinessTables({}, mockRes)
+    } catch (businessError) {
+      console.error('⚠️ Ошибка настройки бизнес-таблиц:', businessError.message)
+      // Don't exit on business tables error, just log it
+    }
+
     app.listen(PORT, () => {
       console.log(`🚀 Сервер запущен на порту ${PORT}`)
       console.log(`📊 API доступно: http://localhost:${PORT}/api`)
+      console.log(`🔧 Миграции: http://localhost:${PORT}/api/migrations`)
+      console.log(`📋 Кастомные таблицы: http://localhost:${PORT}/api/custom-tables`)
       console.log(`💓 Health check: http://localhost:${PORT}/health`)
     })
   } catch (error) {
