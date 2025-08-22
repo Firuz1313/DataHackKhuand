@@ -8,7 +8,9 @@
       <main class="p-6">
         <div class="mb-6">
           <h1 class="text-2xl font-bold text-gray-900 mb-2">SQL Запросы</h1>
-          <p class="text-gray-600">Выполнение и мониторинг SQL запросов с профессиональными примерами</p>
+          <p class="text-gray-600">
+            Выполнение и мониторинг SQL запросов с профессиональными примерами
+          </p>
         </div>
 
         <!-- Query Editor Section -->
@@ -118,7 +120,9 @@
         <div class="bg-white rounded-lg shadow-card border border-gray-200 p-6 mb-6">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-semibold text-gray-900">Профессиональные запросы</h2>
-            <div class="text-sm text-gray-600">{{ professionalQueries.length }} готовых запросов</div>
+            <div class="text-sm text-gray-600">
+              {{ professionalQueries.length }} готовых запросов
+            </div>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -135,29 +139,39 @@
                   <div class="flex items-center space-x-3 text-xs text-gray-500">
                     <span class="flex items-center">
                       <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                        <path
+                          fill-rule="evenodd"
+                          d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                          clip-rule="evenodd"
+                        />
                       </svg>
                       {{ query.category }}
                     </span>
                     <span class="flex items-center">
                       <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                          clip-rule="evenodd"
+                        />
                       </svg>
                       {{ query.difficulty }}
                     </span>
                   </div>
                 </div>
-                <button 
+                <button
                   class="opacity-0 group-hover:opacity-100 px-3 py-1 text-xs bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200"
                   @click.stop="executeProfessionalQuery(query)"
                 >
                   ▶️ Выполнить
                 </button>
               </div>
-              
+
               <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                <code class="text-xs text-gray-700 font-mono leading-relaxed">{{ query.preview }}</code>
+                <code class="text-xs text-gray-700 font-mono leading-relaxed">{{
+                  query.preview
+                }}</code>
               </div>
             </div>
           </div>
@@ -253,7 +267,7 @@ const professionalQueries: ProfessionalQuery[] = [
 FROM information_schema.tables 
 WHERE table_schema = 'public' 
 ORDER BY table_name;`,
-    expectedResult: 'Показать все публичные таблицы с их типами'
+    expectedResult: 'Показать все публичные таблицы с их типами',
   },
   {
     id: 2,
@@ -272,7 +286,7 @@ ORDER BY table_name;`,
 FROM information_schema.columns 
 WHERE table_schema = 'public'
 ORDER BY table_name, ordinal_position;`,
-    expectedResult: 'Структура всех столбцов в публичных таблицах'
+    expectedResult: 'Структура всех столбцов в публичных таблицах',
   },
   {
     id: 3,
@@ -285,7 +299,7 @@ ORDER BY table_name, ordinal_position;`,
   current_database() as database_name,
   pg_size_pretty(pg_database_size(current_database())) as database_size,
   pg_database_size(current_database()) as size_bytes;`,
-    expectedResult: 'Размер текущей базы данных'
+    expectedResult: 'Размер текущей базы данных',
   },
   {
     id: 4,
@@ -304,7 +318,7 @@ ORDER BY table_name, ordinal_position;`,
 FROM pg_stat_activity 
 WHERE state = 'active' 
 ORDER BY query_start DESC;`,
-    expectedResult: 'Список активных подключений с деталями'
+    expectedResult: 'Список активных подключений с деталями',
   },
   {
     id: 5,
@@ -321,7 +335,7 @@ ORDER BY query_start DESC;`,
 FROM pg_tables 
 WHERE schemaname = 'public'
 ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;`,
-    expectedResult: 'Размеры всех таблиц в порядке убывания'
+    expectedResult: 'Размеры всех таблиц в порядке убывания',
   },
   {
     id: 6,
@@ -341,7 +355,7 @@ ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;`,
   idx_tup_fetch
 FROM pg_stat_user_tables 
 ORDER BY n_live_tup DESC;`,
-    expectedResult: 'Детальная статистика по всем пользовательским таблицам'
+    expectedResult: 'Детальная статистика по всем пользовательским таблицам',
   },
   {
     id: 7,
@@ -358,7 +372,7 @@ ORDER BY n_live_tup DESC;`,
   inet_server_addr(),
   inet_server_port(),
   current_timestamp;`,
-    expectedResult: 'Полная информация о системе и подключении'
+    expectedResult: 'Полная информация о системе и подключении',
   },
   {
     id: 8,
@@ -375,7 +389,7 @@ ORDER BY n_live_tup DESC;`,
 FROM pg_indexes 
 WHERE schemaname = 'public'
 ORDER BY tablename, indexname;`,
-    expectedResult: 'Все индексы с их определениями'
+    expectedResult: 'Все индексы с их определениями',
   },
   {
     id: 9,
@@ -393,7 +407,7 @@ ORDER BY tablename, indexname;`,
 FROM information_schema.table_constraints 
 WHERE table_schema = 'public'
 ORDER BY table_name, constraint_type;`,
-    expectedResult: 'Все ограничения целостности данных'
+    expectedResult: 'Все ограничения целостности данных',
   },
   {
     id: 10,
@@ -412,7 +426,7 @@ ORDER BY table_name, constraint_type;`,
   rolvaliduntil
 FROM pg_roles
 ORDER BY rolname;`,
-    expectedResult: 'Все роли пользователей с их правами'
+    expectedResult: 'Все роли пользователей с их правами',
   },
   {
     id: 11,
@@ -430,7 +444,7 @@ ORDER BY rolname;`,
 FROM pg_stat_statements 
 ORDER BY calls DESC 
 LIMIT 10;`,
-    expectedResult: 'Топ-10 самых часто выполняемых запросов'
+    expectedResult: 'Топ-10 самых часто выполняемых запросов',
   },
   {
     id: 12,
@@ -448,7 +462,7 @@ LIMIT 10;`,
 FROM pg_stat_statements 
 ORDER BY mean_exec_time DESC 
 LIMIT 10;`,
-    expectedResult: 'Топ-10 самых медленных запросов по среднему времени'
+    expectedResult: 'Топ-10 самых медленных запросов по среднему времени',
   },
   {
     id: 13,
@@ -466,7 +480,7 @@ LIMIT 10;`,
 FROM pg_stat_activity 
 GROUP BY datname, usename, application_name
 ORDER BY connection_count DESC;`,
-    expectedResult: 'Группировка подключений по пользователям и приложениям'
+    expectedResult: 'Группировка подключений по пользователям и приложениям',
   },
   {
     id: 14,
@@ -484,7 +498,7 @@ ORDER BY connection_count DESC;`,
 FROM pg_settings 
 WHERE category IN ('Resource Usage', 'Connections and Authentication', 'Query Tuning')
 ORDER BY category, name;`,
-    expectedResult: 'Ключевые настройки производительности и подключений'
+    expectedResult: 'Ключевые настройки производительности и подключений',
   },
   {
     id: 15,
@@ -506,7 +520,7 @@ ORDER BY category, name;`,
 FROM pg_locks 
 WHERE NOT granted
 ORDER BY database, relation;`,
-    expectedResult: 'Все неразрешенные блокировки в системе'
+    expectedResult: 'Все неразрешенные блокировки в системе',
   },
   {
     id: 16,
@@ -526,7 +540,7 @@ ORDER BY database, relation;`,
   END as cache_hit_ratio
 FROM pg_statio_user_tables
 ORDER BY heap_blks_read DESC;`,
-    expectedResult: 'Статистика кэша и дисковых операций для таблиц'
+    expectedResult: 'Статистика кэша и дисковых операций для таблиц',
   },
   {
     id: 17,
@@ -546,7 +560,7 @@ ORDER BY heap_blks_read DESC;`,
   autovacuum_count
 FROM pg_stat_user_tables
 ORDER BY last_autovacuum DESC NULLS LAST;`,
-    expectedResult: 'История операций очистки и анализа таблиц'
+    expectedResult: 'История операций очистки и анализа таблиц',
   },
   {
     id: 18,
@@ -554,13 +568,13 @@ ORDER BY last_autovacuum DESC NULLS LAST;`,
     description: 'Работа с временными зонами и временными метками',
     category: 'Утилиты',
     difficulty: 'Легкий',
-    preview: 'SELECT current_timestamp, timezone(\'UTC\', current_timestamp)...',
+    preview: "SELECT current_timestamp, timezone('UTC', current_timestamp)...",
     sql: `SELECT 
   current_timestamp as local_time,
   timezone('UTC', current_timestamp) as utc_time,
   extract(timezone from current_timestamp) as timezone_offset,
   current_setting('timezone') as server_timezone;`,
-    expectedResult: 'Информация о времени сервера и временных зонах'
+    expectedResult: 'Информация о времени сервера и временных зонах',
   },
   {
     id: 19,
@@ -574,7 +588,7 @@ ORDER BY last_autovacuum DESC NULLS LAST;`,
   pg_current_wal_lsn() as current_wal_lsn,
   pg_wal_lsn_diff(pg_current_wal_lsn(), '0/0') as wal_bytes,
   current_setting('wal_level') as wal_level;`,
-    expectedResult: 'Информация о состоянии репликации и WAL'
+    expectedResult: 'Информация о состоянии репликации и WAL',
   },
   {
     id: 20,
@@ -592,8 +606,8 @@ ORDER BY last_autovacuum DESC NULLS LAST;`,
 FROM pg_extension e
 LEFT JOIN pg_namespace n ON n.oid = e.extnamespace
 ORDER BY e.extname;`,
-    expectedResult: 'Все установленные расширения PostgreSQL'
-  }
+    expectedResult: 'Все установленные расширения PostgreSQL',
+  },
 ]
 
 const clearQuery = () => {
@@ -640,15 +654,15 @@ const loadProfessionalQuery = (query: ProfessionalQuery) => {
 const executeProfessionalQuery = async (query: ProfessionalQuery) => {
   console.log(`Executing professional query: ${query.title}`)
   console.log(`Expected result: ${query.expectedResult}`)
-  
+
   try {
     executing.value = true
     queryResults.value = null
     queryError.value = null
-    
+
     const result = await dbService.executeQuery(query.sql)
     queryResults.value = result
-    
+
     // Scroll to results
     setTimeout(() => {
       const resultsElement = document.querySelector('.query-results')
@@ -656,7 +670,6 @@ const executeProfessionalQuery = async (query: ProfessionalQuery) => {
         resultsElement.scrollIntoView({ behavior: 'smooth' })
       }
     }, 100)
-    
   } catch (error) {
     queryError.value = error instanceof Error ? error.message : 'Неизвестная ошибка'
   } finally {

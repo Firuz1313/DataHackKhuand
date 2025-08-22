@@ -12,7 +12,9 @@
       <main class="p-6">
         <!-- Welcome Section -->
         <div class="mb-8">
-          <h2 class="text-3xl font-bold text-gray-900 mb-2">Профессиональная панель управления данными</h2>
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">
+            Профессиональная панель управления данными
+          </h2>
           <p class="text-gray-700">
             Мониторинг производительности, качества данных и аналитики в реальном времени
           </p>
@@ -83,11 +85,15 @@
         </div>
 
         <!-- Creative Data Quality Dashboard -->
-        <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 rounded-xl text-white p-8 mb-8 shadow-lg">
+        <div
+          class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 rounded-xl text-white p-8 mb-8 shadow-lg"
+        >
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-2xl font-bold mb-2">Интеллектуальная оценка качества данных</h2>
-              <p class="text-blue-100">Анализ на основе 8 ключевых измерений качества с применением ML</p>
+              <p class="text-blue-100">
+                Анализ на основе 8 ключевых измерений качества с применением ML
+              </p>
             </div>
             <div class="text-center">
               <div class="text-6xl font-bold mb-2">{{ dataQualityScore }}</div>
@@ -202,7 +208,10 @@
                     <p class="text-sm text-gray-700">{{ getLegacyHost() }}:{{ getLegacyPort() }}</p>
                   </div>
                 </div>
-                <span class="inline-flex px-2 py-1 text-xs font-medium bg-warning-100 text-warning-800 rounded-full">Только чтение</span>
+                <span
+                  class="inline-flex px-2 py-1 text-xs font-medium bg-warning-100 text-warning-800 rounded-full"
+                  >Только чтение</span
+                >
               </div>
             </div>
           </div>
@@ -225,12 +234,12 @@
                   🔄 Проверить
                 </div>
               </div>
-              
+
               <!-- Time Chart -->
               <div class="h-24 flex items-end justify-between space-x-1 mt-4">
                 <div v-for="hour in timeData" :key="hour.time" class="flex flex-col items-center">
-                  <div 
-                    :style="{ height: hour.height + '%' }" 
+                  <div
+                    :style="{ height: hour.height + '%' }"
                     class="w-4 bg-primary-500 rounded-t-sm hover:bg-primary-600 transition-colors duration-200"
                     :title="`${hour.time}: ${hour.queries} запросов`"
                   ></div>
@@ -270,12 +279,14 @@
                 @click="executeStoredQuery(query)"
               >
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-xs font-mono text-gray-800 truncate flex-1 mr-2">{{ query.sql }}</span>
+                  <span class="text-xs font-mono text-gray-800 truncate flex-1 mr-2">{{
+                    query.sql
+                  }}</span>
                   <span class="text-xs text-gray-600">{{ query.duration }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-xs text-gray-600">{{ query.timeAgo }}</span>
-                  <button 
+                  <button
                     class="text-xs text-primary-600 hover:text-primary-700"
                     @click.stop="executeStoredQuery(query)"
                   >
@@ -544,7 +555,7 @@ const executiveKPIs = ref([
     icon: CheckCircleIcon,
     iconBg: 'bg-gradient-to-br from-orange-500 to-orange-600',
     gradient: 'bg-gradient-to-br from-orange-500 to-orange-600',
-    sparkline: [0.91, 0.92, 0.90, 0.93, 0.94, 0.92, 0.94],
+    sparkline: [0.91, 0.92, 0.9, 0.93, 0.94, 0.92, 0.94],
     sparklineColor: 'bg-orange-500',
   },
 ])
@@ -605,14 +616,14 @@ const timeData = ref([
 const recentQueries = ref([
   {
     id: 1,
-    sql: 'SELECT * FROM information_schema.tables WHERE table_schema = \'public\' LIMIT 10',
+    sql: "SELECT * FROM information_schema.tables WHERE table_schema = 'public' LIMIT 10",
     duration: '23ms',
     timeAgo: '2 мин назад',
     result: 'Показать все публичные таблицы в базе данных',
   },
   {
     id: 2,
-    sql: 'SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = \'public\'',
+    sql: "SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_schema = 'public'",
     duration: '45ms',
     timeAgo: '5 мин назад',
     result: 'Получить структуру всех таблиц',
@@ -640,14 +651,14 @@ const recentQueries = ref([
   },
   {
     id: 6,
-    sql: 'SELECT datname, usename, application_name, state FROM pg_stat_activity WHERE state = \'active\'',
+    sql: "SELECT datname, usename, application_name, state FROM pg_stat_activity WHERE state = 'active'",
     duration: '28ms',
     timeAgo: '18 мин назад',
     result: 'Активные подключения к базе данных',
   },
   {
     id: 7,
-    sql: 'SELECT table_name, pg_size_pretty(pg_total_relation_size(quote_ident(table_name))) FROM information_schema.tables WHERE table_schema = \'public\'',
+    sql: "SELECT table_name, pg_size_pretty(pg_total_relation_size(quote_ident(table_name))) FROM information_schema.tables WHERE table_schema = 'public'",
     duration: '67ms',
     timeAgo: '22 мин назад',
     result: 'Размер каждой таблицы в базе данных',
@@ -668,14 +679,14 @@ const recentQueries = ref([
   },
   {
     id: 10,
-    sql: 'SELECT constraint_name, table_name, constraint_type FROM information_schema.table_constraints WHERE table_schema = \'public\'',
+    sql: "SELECT constraint_name, table_name, constraint_type FROM information_schema.table_constraints WHERE table_schema = 'public'",
     duration: '52ms',
     timeAgo: '32 мин назад',
     result: 'Все ограничения в публичных таблицах',
   },
   {
     id: 11,
-    sql: 'SELECT indexname, tablename, indexdef FROM pg_indexes WHERE schemaname = \'public\'',
+    sql: "SELECT indexname, tablename, indexdef FROM pg_indexes WHERE schemaname = 'public'",
     duration: '41ms',
     timeAgo: '35 мин назад',
     result: 'Все индексы в публичных таблицах',
@@ -710,14 +721,14 @@ const recentQueries = ref([
   },
   {
     id: 16,
-    sql: 'SELECT tablename, attname, n_distinct, correlation FROM pg_stats WHERE schemaname = \'public\' LIMIT 10',
+    sql: "SELECT tablename, attname, n_distinct, correlation FROM pg_stats WHERE schemaname = 'public' LIMIT 10",
     duration: '73ms',
     timeAgo: '52 мин назад',
     result: 'Статистика по столбцам таблиц',
   },
   {
     id: 17,
-    sql: 'SELECT * FROM pg_settings WHERE category = \'Resource Usage\' LIMIT 5',
+    sql: "SELECT * FROM pg_settings WHERE category = 'Resource Usage' LIMIT 5",
     duration: '37ms',
     timeAgo: '55 мин назад',
     result: 'Настройки использования ресурсов',
@@ -731,7 +742,7 @@ const recentQueries = ref([
   },
   {
     id: 19,
-    sql: 'SELECT current_timestamp, timezone(\'UTC\', current_timestamp) as utc_time',
+    sql: "SELECT current_timestamp, timezone('UTC', current_timestamp) as utc_time",
     duration: '11ms',
     timeAgo: '1 час назад',
     result: 'Текущее время сервера',
@@ -855,18 +866,18 @@ const executeQuery = async () => {
 const executeStoredQuery = async (query: any) => {
   console.log('Executing stored query:', query.sql)
   console.log('Expected result:', query.result)
-  
+
   try {
     const result = await dbService.executeQuery(query.sql)
     console.log('Query result:', result)
-    
+
     alert(
-      `✅ Запрос выполнен: ${query.result}\n\nРезультатов: ${result.rowCount || result.rows?.length || 0}\nВремя выполнения: ${query.duration}\n\nПодробности в консоли браузера (F12 → Console)`
+      `✅ Запрос выполнен: ${query.result}\n\nРезультатов: ${result.rowCount || result.rows?.length || 0}\nВремя выполнения: ${query.duration}\n\nПодробности в консоли браузера (F12 → Console)`,
     )
   } catch (error) {
     console.error('Query execution error:', error)
     alert(
-      `❌ Ошибка выполнения запроса:\n${query.sql}\n\n${error instanceof Error ? error.message : 'Неизвестная ошибка'}`
+      `❌ Ошибка выполнения запроса:\n${query.sql}\n\n${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
     )
   }
 }
@@ -876,22 +887,33 @@ const updateRealTimeData = () => {
   executiveKPIs.value.forEach((kpi, index) => {
     const variation = (Math.random() - 0.5) * 0.5 // Smaller, more realistic variations
     kpi.trend = formatNumber(Math.max(-20, Math.min(20, kpi.trend + variation)), 1)
-    
+
     // Update specific KPI values with realistic data
     switch (index) {
       case 0: // Active connections
         const currentConnections = parseInt(kpi.value)
-        const newConnections = Math.max(15, Math.min(50, currentConnections + Math.floor((Math.random() - 0.5) * 6)))
+        const newConnections = Math.max(
+          15,
+          Math.min(50, currentConnections + Math.floor((Math.random() - 0.5) * 6)),
+        )
         kpi.value = newConnections.toString()
         break
       case 1: // Queries per minute
-        const currentQueries = parseInt(kpi.value.replace('K', '').replace(',', '')) * (kpi.value.includes('K') ? 1000 : 1)
-        const newQueries = Math.max(800, Math.min(2000, currentQueries + Math.floor((Math.random() - 0.5) * 100)))
+        const currentQueries =
+          parseInt(kpi.value.replace('K', '').replace(',', '')) *
+          (kpi.value.includes('K') ? 1000 : 1)
+        const newQueries = Math.max(
+          800,
+          Math.min(2000, currentQueries + Math.floor((Math.random() - 0.5) * 100)),
+        )
         kpi.value = formatMetric(newQueries)
         break
       case 2: // Response time
         const currentTime = parseInt(kpi.value.replace('ms', ''))
-        const newTime = Math.max(25, Math.min(120, currentTime + Math.floor((Math.random() - 0.5) * 10)))
+        const newTime = Math.max(
+          25,
+          Math.min(120, currentTime + Math.floor((Math.random() - 0.5) * 10)),
+        )
         kpi.value = newTime + 'ms'
         break
       case 3: // Data quality
@@ -905,32 +927,35 @@ const updateRealTimeData = () => {
   // Update performance and quality scores with proper formatting
   performanceScore.value = formatNumber(
     Math.max(60, Math.min(100, performanceScore.value + (Math.random() - 0.5) * 3)),
-    1
+    1,
   )
-  
+
   dataQualityScore.value = formatNumber(
     Math.max(88, Math.min(98, dataQualityScore.value + (Math.random() - 0.5) * 1.5)),
-    1
+    1,
   )
 
   // Update quality dimensions with proper formatting
   qualityDimensions.value.forEach((dimension) => {
     dimension.score = formatNumber(
       Math.max(80, Math.min(100, dimension.score + (Math.random() - 0.5) * 2)),
-      1
+      1,
     )
   })
-  
+
   // Update performance breakdown with realistic values
   performanceBreakdown.value.forEach((metric) => {
     metric.value = formatNumber(
       Math.max(10, Math.min(90, metric.value + (Math.random() - 0.5) * 3)),
-      1
+      1,
     )
   })
-  
+
   // Update query statistics
-  totalQueries.value = Math.max(1000, Math.min(2000, totalQueries.value + Math.floor((Math.random() - 0.5) * 20)))
+  totalQueries.value = Math.max(
+    1000,
+    Math.min(2000, totalQueries.value + Math.floor((Math.random() - 0.5) * 20)),
+  )
   successfulQueries.value = Math.floor(totalQueries.value * (0.95 + Math.random() * 0.04))
   errorQueries.value = totalQueries.value - successfulQueries.value
 }
@@ -945,7 +970,7 @@ onMounted(() => {
     '🔒 Legacy connection:',
     `${getLegacyUser()}@${getLegacyHost()}:${getLegacyPort()}/${getLegacyDatabase()}`,
   )
-  
+
   // Update real-time data every 5 seconds
   updateInterval = setInterval(updateRealTimeData, 5000)
 })

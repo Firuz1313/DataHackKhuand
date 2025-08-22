@@ -110,7 +110,7 @@ class DatabaseService {
   }
 
   private async wait(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   private async processRequestQueue(): Promise<void> {
@@ -196,13 +196,15 @@ class DatabaseService {
         }
       } catch (error) {
         lastError = error as Error
-        
+
         // If it's a 429 error, continue retrying
         if (lastError.message.includes('429') && attempt < this.MAX_RETRIES) {
-          console.log(`🔄 Rate limited (429), retrying ${endpoint} in ${this.RETRY_DELAYS[attempt] || 4000}ms`)
+          console.log(
+            `🔄 Rate limited (429), retrying ${endpoint} in ${this.RETRY_DELAYS[attempt] || 4000}ms`,
+          )
           continue
         }
-        
+
         // If it's not a 429 or we've exhausted retries, break
         if (!lastError.message.includes('429')) {
           break
@@ -214,7 +216,11 @@ class DatabaseService {
     throw lastError
   }
 
-  private async apiCall<T>(endpoint: string, options: RequestInit = {}, cacheTtl?: number): Promise<T> {
+  private async apiCall<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    cacheTtl?: number,
+  ): Promise<T> {
     try {
       // Check cache first for GET requests
       if ((!options.method || options.method === 'GET') && !options.body) {
@@ -287,7 +293,7 @@ class DatabaseService {
       return await this.apiCall<{ tableName: string; columns: any[] }>(
         `/database/tables/${tableName}/schema`,
         {},
-        300000 // 5min cache for schema
+        300000, // 5min cache for schema
       )
     } catch (error) {
       console.error('Failed to get table schema:', error)

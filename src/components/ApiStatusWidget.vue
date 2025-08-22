@@ -113,22 +113,21 @@ let statusUpdateInterval: number
 
 const refreshStatus = async () => {
   loading.value = true
-  
+
   try {
     // Check API health
     apiHealth.value = await dbService.checkApiHealth()
-    
+
     // Get cache info
     const info = dbService.getCacheInfo()
     cacheInfo.size = info.size
     cacheInfo.keys = info.keys
-    
+
     // Update last request time
     lastRequestTime.value = new Date().toLocaleTimeString('ru-RU')
-    
+
     // Reset rate limit flag (it will be set by error handlers if needed)
     isRateLimited.value = false
-    
   } catch (error) {
     if (error instanceof Error && error.message.includes('429')) {
       isRateLimited.value = true
@@ -156,7 +155,7 @@ const handleRateLimit = () => {
 // Set up periodic status updates
 onMounted(() => {
   refreshStatus()
-  
+
   // Update status every 30 seconds
   statusUpdateInterval = setInterval(() => {
     refreshStatus()

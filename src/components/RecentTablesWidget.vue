@@ -248,7 +248,7 @@ const getStatusBadgeClass = (status: string): string => {
 const delayedFetch = async () => {
   // Add random delay between 300-800ms to stagger API calls
   const delay = 300 + Math.random() * 500
-  await new Promise(resolve => setTimeout(resolve, delay))
+  await new Promise((resolve) => setTimeout(resolve, delay))
   await fetchTables()
 }
 

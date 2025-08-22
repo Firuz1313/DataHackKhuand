@@ -113,7 +113,6 @@
           </router-link>
         </li>
 
-
         <li>
           <router-link
             to="/analytics"
@@ -135,7 +134,6 @@
             Аналитика
           </router-link>
         </li>
-
       </ul>
 
       <!-- Divider -->
@@ -285,7 +283,7 @@ const testConnections = async () => {
 const delayedConnectionTest = async () => {
   // Add random delay between 500-1500ms to stagger API calls
   const delay = 500 + Math.random() * 1000
-  await new Promise(resolve => setTimeout(resolve, delay))
+  await new Promise((resolve) => setTimeout(resolve, delay))
   await testConnections()
 }
 

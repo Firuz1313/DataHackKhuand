@@ -216,7 +216,7 @@ const fetchStats = async () => {
 const delayedFetch = async () => {
   // Add random delay between 100-600ms to stagger API calls
   const delay = 100 + Math.random() * 500
-  await new Promise(resolve => setTimeout(resolve, delay))
+  await new Promise((resolve) => setTimeout(resolve, delay))
   await fetchStats()
 }
 
