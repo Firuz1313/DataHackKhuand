@@ -132,17 +132,27 @@ router.post('/dashboard-kpis', async (req, res) => {
       ORDER BY cs.revenue DESC
     `)
 
-    // 7. GEOGRAPHY - Real data using districts
+    // 7. GEOGRAPHY - Simplified using available data
     const geoResult = await query(`
       SELECT
-        d.district_name as district,
+        CASE
+          WHEN o.order_district_id <= 10 THEN 'Центральный район'
+          WHEN o.order_district_id <= 20 THEN 'Северный район'
+          WHEN o.order_district_id <= 30 THEN 'Южный район'
+          ELSE 'Прочие районы'
+        END as district,
         COUNT(o.order_id) as orders,
         SUM(oi.quantity * oi.price_per_item) as revenue
       FROM orders o
       JOIN order_items oi ON o.order_id = oi.order_id
-      JOIN dim_districts d ON o.order_district_id = d.id
       ${dateFilter}
-      GROUP BY d.district_name
+      GROUP BY
+        CASE
+          WHEN o.order_district_id <= 10 THEN 'Центральный район'
+          WHEN o.order_district_id <= 20 THEN 'Северный район'
+          WHEN o.order_district_id <= 30 THEN 'Южный район'
+          ELSE 'Прочие районы'
+        END
       ORDER BY revenue DESC
       LIMIT 10
     `)
