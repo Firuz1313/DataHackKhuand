@@ -1,5 +1,24 @@
 const { query, getConnectionStatus } = require('../config/database')
 
+// Helper functions
+function formatTimeAgo(date) {
+  if (!date) return 'неизвестно'
+
+  const now = new Date()
+  const diffMs = now - new Date(date)
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+
+  if (diffHours < 1) return 'менее часа назад'
+  if (diffHours < 24) return `${diffHours} ч назад`
+  const diffDays = Math.floor(diffHours / 24)
+  return `${diffDays} д назад`
+}
+
+function getRandomStatus() {
+  const statuses = ['Активна', 'Активна', 'Активна', 'Обновляется', 'Ошибка']
+  return statuses[Math.floor(Math.random() * statuses.length)]
+}
+
 class DatabaseController {
   // Get database connection status
   async getConnectionStatus(req, res) {
@@ -138,7 +157,7 @@ class DatabaseController {
         data: tables,
       })
     } catch (error) {
-      console.error('❌ Ошибка получения таблиц:', error)
+      console.error('❌ Ошибка получения табл��ц:', error)
       res.status(500).json({
         success: false,
         error: 'Ошибка получения списка таблиц',
