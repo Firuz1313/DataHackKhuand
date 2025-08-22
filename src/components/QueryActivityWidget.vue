@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between mb-6">
       <h3 class="text-lg font-semibold text-gray-900">Активность запросов</h3>
       <div class="flex items-center space-x-2">
-        <select 
+        <select
           v-model="selectedTimeRange"
           @change="updateChartData"
           class="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -16,13 +16,29 @@
     </div>
 
     <!-- API Status Indicator -->
-    <div class="mb-4 p-3 rounded-lg" :class="apiConnected ? 'bg-success-50 border border-success-200' : 'bg-error-50 border border-error-200'">
+    <div
+      class="mb-4 p-3 rounded-lg"
+      :class="
+        apiConnected
+          ? 'bg-success-50 border border-success-200'
+          : 'bg-error-50 border border-error-200'
+      "
+    >
       <div class="flex items-center space-x-2">
-        <div :class="apiConnected ? 'bg-success-500' : 'bg-error-500'" class="w-2 h-2 rounded-full animate-pulse"></div>
-        <span class="text-sm font-medium" :class="apiConnected ? 'text-success-700' : 'text-error-700'">
+        <div
+          :class="apiConnected ? 'bg-success-500' : 'bg-error-500'"
+          class="w-2 h-2 rounded-full animate-pulse"
+        ></div>
+        <span
+          class="text-sm font-medium"
+          :class="apiConnected ? 'text-success-700' : 'text-error-700'"
+        >
           API {{ apiConnected ? 'подключено' : 'отключено' }}
         </span>
-        <button @click="checkApiConnection" class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">
+        <button
+          @click="checkApiConnection"
+          class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
+        >
           🔄 Проверить
         </button>
       </div>
@@ -30,28 +46,43 @@
 
     <!-- Chart Area -->
     <div class="mb-6">
-      <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center relative overflow-hidden">
+      <div
+        class="h-64 bg-gray-50 rounded-lg flex items-center justify-center relative overflow-hidden"
+      >
         <!-- Simple Chart Visualization -->
         <div class="absolute inset-0 flex items-end justify-center space-x-2 p-4">
-          <div 
-            v-for="(value, index) in chartData" 
+          <div
+            v-for="(value, index) in chartData"
             :key="index"
             class="bg-gradient-to-t from-primary-600 to-primary-400 rounded-t-sm flex-1 transition-all duration-500 hover:from-primary-700 hover:to-primary-500"
             :style="{ height: `${value}%`, animationDelay: `${index * 0.1}s` }"
             :title="`${value}% активности`"
           ></div>
         </div>
-        
+
         <!-- Chart Labels -->
         <div class="absolute bottom-2 left-4 right-4 flex justify-between text-xs text-gray-500">
           <span v-for="label in timeLabels" :key="label">{{ label }}</span>
         </div>
 
         <!-- Connection Status Overlay -->
-        <div v-if="!apiConnected" class="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center">
+        <div
+          v-if="!apiConnected"
+          class="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center"
+        >
           <div class="text-center">
-            <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <svg
+              class="w-12 h-12 text-gray-400 mx-auto mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <p class="text-gray-600">Нет подключения к API</p>
             <button @click="checkApiConnection" class="mt-2 btn-primary text-sm">Проверить</button>
@@ -84,21 +115,21 @@
           🔄 Обновить
         </button>
       </div>
-      
+
       <!-- Loading State for Queries -->
       <div v-if="loadingQueries" class="flex justify-center py-4">
         <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
       </div>
-      
+
       <!-- Queries List -->
       <div v-else class="space-y-2">
-        <div 
-          v-for="query in recentQueries" 
+        <div
+          v-for="query in recentQueries"
           :key="query.id"
           class="flex items-center justify-between text-sm hover:bg-gray-50 p-2 rounded transition-colors duration-200"
         >
           <div class="flex items-center space-x-3 flex-1 min-w-0">
-            <div 
+            <div
               :class="query.status === 'success' ? 'bg-success-500' : 'bg-error-500'"
               class="w-2 h-2 rounded-full flex-shrink-0"
             ></div>
@@ -114,15 +145,15 @@
       <!-- Query Input Section -->
       <div class="mt-4 pt-4 border-t border-gray-200">
         <div class="flex items-center space-x-2">
-          <input 
+          <input
             v-model="newQuery"
             @keyup.enter="executeQuery"
-            type="text" 
+            type="text"
             placeholder="SELECT * FROM information_schema.tables LIMIT 10"
             class="flex-1 input-field text-sm font-mono"
             :disabled="!apiConnected"
-          >
-          <button 
+          />
+          <button
             @click="executeQuery"
             :disabled="!newQuery.trim() || executingQuery || !apiConnected"
             class="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -149,12 +180,25 @@ const executingQuery = ref(false)
 const newQuery = ref('')
 
 const chartData = ref([65, 78, 90, 67, 82, 95, 88, 76, 85, 92, 89, 94])
-const timeLabels = ref(['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'])
+const timeLabels = ref([
+  '00:00',
+  '02:00',
+  '04:00',
+  '06:00',
+  '08:00',
+  '10:00',
+  '12:00',
+  '14:00',
+  '16:00',
+  '18:00',
+  '20:00',
+  '22:00',
+])
 
 const queryStats = reactive({
   total: 0,
   successful: 0,
-  failed: 0
+  failed: 0,
 })
 
 const recentQueries = ref<QueryActivity[]>([])
@@ -164,11 +208,37 @@ const updateChartData = () => {
   switch (selectedTimeRange.value) {
     case '1h':
       chartData.value = [65, 78, 90, 67, 82, 95, 88, 76, 85, 92, 89, 94]
-      timeLabels.value = ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00']
+      timeLabels.value = [
+        '00:00',
+        '02:00',
+        '04:00',
+        '06:00',
+        '08:00',
+        '10:00',
+        '12:00',
+        '14:00',
+        '16:00',
+        '18:00',
+        '20:00',
+        '22:00',
+      ]
       break
     case '24h':
       chartData.value = [45, 62, 78, 85, 92, 88, 76, 65, 58, 72, 85, 91]
-      timeLabels.value = ['0h', '2h', '4h', '6h', '8h', '10h', '12h', '14h', '16h', '18h', '20h', '22h']
+      timeLabels.value = [
+        '0h',
+        '2h',
+        '4h',
+        '6h',
+        '8h',
+        '10h',
+        '12h',
+        '14h',
+        '16h',
+        '18h',
+        '20h',
+        '22h',
+      ]
       break
     case '7d':
       chartData.value = [72, 68, 85, 91, 78, 82, 88]
@@ -191,16 +261,16 @@ const checkApiConnection = async () => {
 
 const refreshQueries = async () => {
   if (!apiConnected.value) return
-  
+
   loadingQueries.value = true
   try {
     const queries = await dbService.getRecentQueries()
     recentQueries.value = queries
-    
+
     // Update stats based on queries
     queryStats.total = queries.length * 10 // Multiply for more realistic numbers
-    queryStats.successful = queries.filter(q => q.status === 'success').length * 9
-    queryStats.failed = queries.filter(q => q.status === 'error').length * 2
+    queryStats.successful = queries.filter((q) => q.status === 'success').length * 9
+    queryStats.failed = queries.filter((q) => q.status === 'error').length * 2
   } catch (error) {
     console.error('Failed to refresh queries:', error)
   } finally {
@@ -210,67 +280,71 @@ const refreshQueries = async () => {
 
 const executeQuery = async () => {
   if (!newQuery.value.trim() || executingQuery.value || !apiConnected.value) return
-  
+
   executingQuery.value = true
   const startTime = Date.now()
-  
+
   try {
     const query = newQuery.value.trim()
-    
+
     // Validate that it's a SELECT query
     if (!query.toLowerCase().startsWith('select')) {
       throw new Error('Только SELECT запросы разрешены')
     }
-    
+
     const result = await dbService.executeQuery(query)
-    const duration = result.executionTime || (Date.now() - startTime)
-    
+    const duration = result.executionTime || Date.now() - startTime
+
     // Add to recent queries
     const newQueryRecord: QueryActivity = {
       id: Date.now(),
       query: query.length > 50 ? query.substring(0, 50) + '...' : query,
       duration: `${duration}ms`,
       time: 'только что',
-      status: 'success'
+      status: 'success',
     }
-    
+
     recentQueries.value.unshift(newQueryRecord)
     if (recentQueries.value.length > 10) {
       recentQueries.value.pop()
     }
-    
+
     // Update stats
     queryStats.total++
     queryStats.successful++
-    
+
     // Show result
     console.log('Query result:', result)
-    alert(`✅ Запрос выполнен успешно!\nВремя выполнения: ${duration}ms\nРезультатов: ${result.rows.length}\n\nПроверьте консоль для подробностей.`)
-    
+    alert(
+      `✅ Запрос выполнен успешно!\nВремя выполнения: ${duration}ms\nРезультатов: ${result.rows.length}\n\nПроверьте консоль для подробностей.`,
+    )
+
     newQuery.value = ''
   } catch (error) {
     const duration = Date.now() - startTime
-    
+
     // Add error to recent queries
     const errorQueryRecord: QueryActivity = {
       id: Date.now(),
       query: newQuery.value.length > 50 ? newQuery.value.substring(0, 50) + '...' : newQuery.value,
       duration: `${duration}ms`,
       time: 'только что',
-      status: 'error'
+      status: 'error',
     }
-    
+
     recentQueries.value.unshift(errorQueryRecord)
     if (recentQueries.value.length > 10) {
       recentQueries.value.pop()
     }
-    
+
     // Update stats
     queryStats.total++
     queryStats.failed++
-    
+
     console.error('Query execution error:', error)
-    alert(`❌ Ошибка выполнения запроса:\n${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
+    alert(
+      `❌ Ошибка выполнения запроса:\n${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
+    )
   } finally {
     executingQuery.value = false
   }

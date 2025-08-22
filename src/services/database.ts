@@ -48,12 +48,12 @@ export interface ApiResponse<T> {
 class DatabaseService {
   private static instance: DatabaseService
   private baseUrl: string
-  
+
   constructor() {
     // Use relative URLs for API calls - Vite proxy will handle routing to backend
     this.baseUrl = '/api'
   }
-  
+
   public static getInstance(): DatabaseService {
     if (!DatabaseService.instance) {
       DatabaseService.instance = new DatabaseService()
@@ -65,22 +65,24 @@ class DatabaseService {
     try {
       const url = `${this.baseUrl}${endpoint}`
       console.log(`🌐 API вызов: ${options.method || 'GET'} ${url}`)
-      
+
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
-          ...options.headers
+          ...options.headers,
         },
-        ...options
+        ...options,
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }))
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }))
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
 
       const result: ApiResponse<T> = await response.json()
-      
+
       if (!result.success) {
         throw new Error(result.error || 'API вернул ошибку')
       }
@@ -97,7 +99,7 @@ class DatabaseService {
 
   async testConnection(): Promise<boolean> {
     try {
-      const status = await this.apiCall<{isConnected: boolean}>('/database/status')
+      const status = await this.apiCall<{ isConnected: boolean }>('/database/status')
       return status.isConnected
     } catch (error) {
       console.error('Database connection test failed:', error)
@@ -119,7 +121,7 @@ class DatabaseService {
         newTables: 0,
         newRecords: 0,
         sizeGrowth: '0 MB',
-        maxConnections: 100
+        maxConnections: 100,
       }
     }
   }
@@ -133,9 +135,11 @@ class DatabaseService {
     }
   }
 
-  async getTableSchema(tableName: string): Promise<{tableName: string, columns: any[]}> {
+  async getTableSchema(tableName: string): Promise<{ tableName: string; columns: any[] }> {
     try {
-      return await this.apiCall<{tableName: string, columns: any[]}>(`/database/tables/${tableName}/schema`)
+      return await this.apiCall<{ tableName: string; columns: any[] }>(
+        `/database/tables/${tableName}/schema`,
+      )
     } catch (error) {
       console.error('Failed to get table schema:', error)
       throw error
@@ -146,7 +150,7 @@ class DatabaseService {
     try {
       return await this.apiCall<QueryResult>('/database/query', {
         method: 'POST',
-        body: JSON.stringify({ query })
+        body: JSON.stringify({ query }),
       })
     } catch (error) {
       console.error('Query execution failed:', error)

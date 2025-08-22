@@ -28,7 +28,12 @@
     "@types/node": "^22.15.32",
     "@types/pg": "^8.11.12"
   },
-  "keywords": ["api", "database", "postgresql", "express"],
+  "keywords": [
+    "api",
+    "database",
+    "postgresql",
+    "express"
+  ],
   "author": "DataBoard Team",
   "license": "MIT"
 }
