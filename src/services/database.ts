@@ -206,6 +206,16 @@ class DatabaseService {
   }
 
   private async apiCallWithRetry<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    // Check circuit breaker first
+    if (this.isRateLimited()) {
+      throw new Error('Service temporarily unavailable due to rate limiting')
+    }
+
+    // Check queue size
+    if (this.requestQueue.length >= this.MAX_QUEUE_SIZE) {
+      throw new Error('Too many pending requests - try again later')
+    }
+
     let lastError: Error = new Error('Unknown error')
 
     for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
@@ -218,29 +228,34 @@ class DatabaseService {
               reject,
               endpoint,
               options,
+              timestamp: Date.now(),
             })
             this.processRequestQueue()
           })
         } else {
-          // Retry attempts - wait before retrying
-          const delay = this.RETRY_DELAYS[attempt - 1] || 4000
+          // Single retry attempt with longer delay
+          const delay = this.RETRY_DELAYS[0]
           console.log(`⏳ Retry attempt ${attempt} after ${delay}ms for ${endpoint}`)
           await this.wait(delay)
+
+          // Check circuit breaker again before retry
+          if (this.isRateLimited()) {
+            throw new Error('Service temporarily unavailable due to rate limiting')
+          }
+
           return await this.makeDirectApiCall<T>(endpoint, options)
         }
       } catch (error) {
         lastError = error as Error
 
-        // If it's a 429 error, continue retrying
-        if (lastError.message.includes('429') && attempt < this.MAX_RETRIES) {
-          console.log(
-            `🔄 Rate limited (429), retrying ${endpoint} in ${this.RETRY_DELAYS[attempt] || 4000}ms`,
-          )
-          continue
+        // If it's a 429 error, stop retrying immediately
+        if (lastError.message.includes('429')) {
+          this.handleRateLimit()
+          throw new Error('Rate limit exceeded - please wait before making more requests')
         }
 
-        // If it's not a 429 or we've exhausted retries, break
-        if (!lastError.message.includes('429')) {
+        // For other errors, break after first retry
+        if (attempt >= this.MAX_RETRIES) {
           break
         }
       }
