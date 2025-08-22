@@ -260,10 +260,6 @@ const getLegacyUser = (): string => {
   return import.meta.env.VITE_LEGACY_DB_USER || 'user_db'
 }
 
-const setActiveItem = (item: string) => {
-  activeItem.value = item
-}
-
 const testConnections = async () => {
   testing.value = true
 
