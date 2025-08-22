@@ -171,13 +171,13 @@ class CustomTablesService {
     lastCheck: string
   }> {
     try {
-      const response = await fetch(`${this.baseUrl}/system/health`)
+      const response = await fetch(`${this.baseUrl}/admin/health`)
       const data = await response.json()
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Health check failed')
       }
-      
+
       return data.data
     } catch (error) {
       console.error('System health check failed:', error)
