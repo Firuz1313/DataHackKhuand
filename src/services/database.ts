@@ -459,6 +459,140 @@ class DatabaseService {
     }
   }
 
+  // Get table indexes
+  async getTableIndexes(tableName: string): Promise<{
+    tableName: string;
+    indexes: Array<{
+      index_name: string;
+      index_definition: string;
+      index_type: 'PRIMARY' | 'UNIQUE' | 'REGULAR';
+      index_size: string;
+      index_method: string;
+      columns: string;
+    }>;
+  }> {
+    try {
+      return await this.apiCall<{
+        tableName: string;
+        indexes: Array<{
+          index_name: string;
+          index_definition: string;
+          index_type: 'PRIMARY' | 'UNIQUE' | 'REGULAR';
+          index_size: string;
+          index_method: string;
+          columns: string;
+        }>;
+      }>(`/database/tables/${tableName}/indexes`, {}, 300000) // 5min cache for indexes
+    } catch (error) {
+      console.error('Failed to get table indexes:', error)
+      throw error
+    }
+  }
+
+  // Get table foreign keys
+  async getTableForeignKeys(tableName: string): Promise<{
+    tableName: string;
+    outgoingForeignKeys: Array<{
+      constraint_name: string;
+      column_name: string;
+      foreign_table_name: string;
+      foreign_column_name: string;
+      update_rule: string;
+      delete_rule: string;
+    }>;
+    incomingForeignKeys: Array<{
+      constraint_name: string;
+      referencing_table_name: string;
+      referencing_column_name: string;
+      update_rule: string;
+      delete_rule: string;
+    }>;
+  }> {
+    try {
+      return await this.apiCall<{
+        tableName: string;
+        outgoingForeignKeys: Array<{
+          constraint_name: string;
+          column_name: string;
+          foreign_table_name: string;
+          foreign_column_name: string;
+          update_rule: string;
+          delete_rule: string;
+        }>;
+        incomingForeignKeys: Array<{
+          constraint_name: string;
+          referencing_table_name: string;
+          referencing_column_name: string;
+          update_rule: string;
+          delete_rule: string;
+        }>;
+      }>(`/database/tables/${tableName}/foreign-keys`, {}, 300000) // 5min cache for foreign keys
+    } catch (error) {
+      console.error('Failed to get table foreign keys:', error)
+      throw error
+    }
+  }
+
+  // Get database data model and relationships
+  async getDatabaseDataModel(): Promise<{
+    tables: Array<{
+      name: string;
+      schema: string;
+      comment: string | null;
+      columns: Array<{
+        column_name: string;
+        data_type: string;
+        is_nullable: string;
+        column_default: string | null;
+        is_primary_key: boolean;
+      }>;
+      position: { x: number; y: number };
+    }>;
+    relationships: Array<{
+      id: string;
+      sourceTable: string;
+      sourceColumn: string;
+      targetTable: string;
+      targetColumn: string;
+      constraintName: string;
+      updateRule: string;
+      deleteRule: string;
+      type: string;
+    }>;
+  }> {
+    try {
+      return await this.apiCall<{
+        tables: Array<{
+          name: string;
+          schema: string;
+          comment: string | null;
+          columns: Array<{
+            column_name: string;
+            data_type: string;
+            is_nullable: string;
+            column_default: string | null;
+            is_primary_key: boolean;
+          }>;
+          position: { x: number; y: number };
+        }>;
+        relationships: Array<{
+          id: string;
+          sourceTable: string;
+          sourceColumn: string;
+          targetTable: string;
+          targetColumn: string;
+          constraintName: string;
+          updateRule: string;
+          deleteRule: string;
+          type: string;
+        }>;
+      }>('/database/data-model', {}, 600000) // 10min cache for data model
+    } catch (error) {
+      console.error('Failed to get database data model:', error)
+      throw error
+    }
+  }
+
   // Clear cache manually if needed
   clearCache(): void {
     this.cache.clear()
