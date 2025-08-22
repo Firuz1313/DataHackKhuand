@@ -290,17 +290,36 @@ let updateInterval: number
 
 const refreshAnalytics = async () => {
   loading.value = true
-  
-  // Simulate API calls
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  // Update performance metrics with random variations
-  performance.cpu.current = Math.max(0, Math.min(100, performance.cpu.current + (Math.random() - 0.5) * 10))
-  performance.memory.current = Math.max(0, Math.min(100, performance.memory.current + (Math.random() - 0.5) * 5))
-  performance.io.current = Math.max(0, Math.min(100, performance.io.current + (Math.random() - 0.5) * 15))
-  
-  lastUpdate.value = new Date().toLocaleTimeString()
-  loading.value = false
+
+  try {
+    // Load performance metrics
+    const performanceData = await dbService.getPerformanceMetrics()
+    Object.assign(performance, performanceData)
+
+    // Load weekly activity
+    const weeklyData = await dbService.getWeeklyActivity()
+    weeklyActivity.value = weeklyData.weeklyActivity.map(day => ({
+      name: day.day,
+      queries: day.queries
+    }))
+
+    totalQueries.value = weeklyData.summary.totalQueries
+    successfulQueries.value = weeklyData.summary.successfulQueries
+    errorQueries.value = weeklyData.summary.errorQueries
+
+    // Load real-time stats
+    const realtimeData = await dbService.getRealTimeStats()
+    realTimeStats.activeConnections = realtimeData.activeConnections
+    realTimeStats.queriesPerMinute = realtimeData.queriesPerMinute
+    realTimeStats.avgResponseTime = realtimeData.avgResponseTime
+    realTimeStats.cacheSize = realtimeData.cacheSize
+
+  } catch (error) {
+    console.error('Failed to load analytics data:', error)
+  } finally {
+    lastUpdate.value = new Date().toLocaleTimeString()
+    loading.value = false
+  }
 }
 
 const startRealTimeUpdates = () => {
